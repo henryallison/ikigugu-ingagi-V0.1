@@ -1,17 +1,7 @@
-# Core packages
 Django==3.2.25
 gunicorn==20.1.0
 whitenoise==6.4.0
 psycopg2-binary==2.9.6
-
-# Data science packages (with wheel constraints)
---only-binary :all:
---no-build-isolation
-
-numpy==1.26.4
-scipy==1.13.0
-scikit-learn==1.4.2; python_version < '3.12'
-pandas==2.2.1
 
 # Other dependencies
 cloudinary==1.44.0
