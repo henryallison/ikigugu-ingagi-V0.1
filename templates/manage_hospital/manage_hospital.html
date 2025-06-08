@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Hospital - Rwanda Health Connect</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #eeeaea;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles (Always Open - Desktop First) */
+        .sidebar {
+            width: 250px; /* Fixed width for the static sidebar */
+            height: 100vh;
+            position: sticky; /* Keeps sidebar fixed when scrolling content */
+            top: 0;
+            background: rgb(248, 248, 248);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Shadow to the right */
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex; /* Use flexbox for vertical alignment of logo, nav, logout */
+            flex-direction: column;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #918ff4;
+            padding: 15px 20px; /* Padding for the logo */
+            border-bottom: 1px solid #eee; /* Separator below logo */
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 15px 0; /* Padding around the entire nav list */
+            flex-grow: 1; /* Allows nav-links to take available space */
+        }
+
+        .nav-links li {
+            position: relative;
+        }
+
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #0e0d0d;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .nav-links li a:hover {
+            color: #1c94e4;
+            background: rgba(0,0,0,0.03);
+        }
+
+        .nav-links li a:hover i {
+            color: #209cef;
+        }
+
+        .nav-links li a i:first-child {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            color: #555;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-links li a .dropdown {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #777;
+            transition: transform 0.3s;
+        }
+
+        .logout-container {
+            padding: 15px 20px;
+            border-top: 1px solid #eee; /* Separator above logout */
+            margin-top: auto; /* Pushes logout to the bottom */
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #100e0e;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            color: #74abf8;
+        }
+
+        .logout-btn i {
+            font-size: 18px;
+        }
+
+        /* CSS for sub-menu toggle functionality */
+        .nav-links li.active .dropdown {
+            transform: rotate(90deg);
+            color: #3498db;
+        }
+
+        .sub-menu {
+            list-style: none;
+            background: #f9f9f9;
+            max-height: 0; /* Initially hide the sub-menu */
+            overflow: hidden; /* Hide content that overflows max-height */
+            transition: max-height 0.3s ease-out; /* Smooth transition for expand/collapse */
+        }
+
+        .nav-links li.active .sub-menu {
+            max-height: 500px; /* Max height when active (ensure it's large enough) */
+        }
+
+        .sub-menu li a {
+            padding-left: 50px !important; /* Indent sub-menu items */
+            font-size: 0.9rem;
+            color: #555 !important;
+        }
+
+        .sub-menu li a:hover {
+            color: #3498db !important;
+            background: transparent !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1; /* Takes remaining space */
+            padding: 20px;
+            background: #fff;
+            overflow-x: auto; /* Ensures horizontal scroll for tables if needed */
+        }
+
+        /* Hospital Management Styles - these are good, keeping them */
+        .hospital-management {
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hospital-management h1 {
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .flex-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .flex-box {
+            padding: 25px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 220px;
+        }
+
+        .flex-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .flex-box i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .flex-box h2 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        .flex-box p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        /* Color Variations */
+        .green-box {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .blue-box {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .red-box {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .yellow-box {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .purple-box {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .teal-box {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+        }
+
+        /* Responsive adjustments (keeping these as they affect content, not just sidebar) */
+        @media (max-width: 767px) {
+            /* Adjustments for mobile view of the *content* areas */
+            .hospital-management h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            /* Desktop/Tablet layout for main content */
+            .hospital-management h1 {
+                font-size: 2rem;
+            }
+
+            .flex-box {
+                min-height: 250px;
+            }
+
+            .flex-box i {
+                font-size: 3rem;
+            }
+
+            .flex-box h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .hospital-management {
+                padding: 25px;
+            }
+
+            .flex-container {
+                gap: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+           <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="hospital-management">
+                <h1>Hospital Management</h1>
+                <div class="flex-container">
+                    <a href="{% url 'add_hospital' %}" class="flex-box green-box">
+                        <i class="fas fa-plus-circle"></i>
+                        <h2>Add A New System or Hospital Admin</h2>
+                        <p>Register a new System or Hospital Admin in the system</p>
+                    </a>
+
+                    <a href="{% url 'manage_hospital_register' %}" class="flex-box red-box">
+                        <i class="fas fa-eye"></i>
+                        <h2>Manage Hospital Registration</h2>
+                        <p>Browse and search all pending facilities registration</p>
+                    </a>
+
+                    <a href="{% url 'manage_users' %}" class="flex-box blue-box">
+                        <i class="fas fa-user-md"></i>
+                        <h2>Manage System or Hospital Admin</h2>
+                        <p>Manage System or Hospital administrator's details</p>
+                    </a>
+
+                    <a href="{% url 'evaluate_hospital_credentials' %}" class="flex-box yellow-box">
+                        <i class="fas fa-file-alt"></i>
+                        <h2>Evaluate Hospital Credentials</h2>
+                        <p>Review and verify hospital documents and qualifications</p>
+                    </a>
+
+                    <a href="{% url 'manage_doctors' %}" class="flex-box purple-box">
+                        <i class="fas fa-user-md"></i>
+                        <h2>Manage Doctors</h2>
+                        <p>View and manage all doctors in the system</p>
+                    </a>
+
+                    <a href="{% url 'manage_hospital_inventory' %}" class="flex-box teal-box">
+                        <i class="fas fa-warehouse"></i>
+                        <h2>Manage Hospital Inventory</h2>
+                        <p>Track and manage medical supplies and equipment</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality for sidebar items (toggle sub-menus)
+            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+            dropdownTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior for dropdowns
+
+                    const parentLi = this.closest('li');
+
+                    // Toggle 'active' class on the clicked submenu
+                    parentLi.classList.toggle('active');
+
+                    // Close other open submenus
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== parentLi) { // If it's not the clicked submenu
+                            menu.classList.remove('active'); // Close it
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                // Check if the click is outside any .submenu or inside a .sub-menu itself
+                // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
+                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                    document.querySelectorAll('.submenu').forEach(li => {
+                        li.classList.remove('active');
+                    });
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside its sub-menu
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
+                });
+            });
+        });
+    </script>
+</body>
+</html>

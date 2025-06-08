@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Patients</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    /* Main Content Styles */
+    .main-content {
+        padding: 20px;
+        background: #fff;
+        overflow-x: auto;
+    }
+    /* No results message box */
+.no-results-message {
+    display: none;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.no-results-message i {
+    font-size: 2rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.no-results-message h3 {
+    color: #343a40;
+    margin-bottom: 10px;
+}
+
+.no-results-message p {
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+    /* Page Header Styles */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.page-header h1 {
+    color: #333;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+}
+
+.back-btn, .add-btn {
+    border: 2px solid #3498db;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #3498db;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.back-btn:hover, .add-btn:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Search Bar Styles (now in header) */
+.search-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-grow: 1; /* Allow search to take available space */
+    max-width: 400px; /* Limit maximum width */
+}
+
+.search-input {
+    padding: 8px 15px;
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    flex-grow: 1; /* Take available space */
+    min-width: 150px; /* Minimum width */
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.search-btn, .clear-search-btn {
+    border: 2px solid #3498db;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: transparent;
+    color: #3498db;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    width: 70px; /* Fixed width for square buttons */
+    height: 40px; /* Fixed height to match input */
+}
+
+.search-btn:hover, .clear-search-btn:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Remove the old search-container styles since we've moved it */
+.search-container {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .header-actions {
+        gap: 10px;
+    }
+    
+    .search-bar {
+        order: 3; /* Move search to bottom on mobile */
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .back-btn, .add-btn {
+        padding: 8px 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .back-btn, .add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .search-bar {
+        order: 0; /* Keep search at top */
+    }
+}
+    /* Table Styles */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        background: white;
+        margin-bottom: 20px;
+    }
+
+    .patient-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 1500px; /* Keep this for larger screens to prevent squishing */
+    }
+
+    .patient-table th {
+        background-color: #3498db;
+        color: white;
+        padding: 12px 8px;
+        text-align: left;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 1; /* Ensure sticky header is above table content */
+    }
+
+    .patient-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    .patient-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .patient-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Action Buttons */
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-view, .btn-edit, .btn-delete {
+        padding: 6px 8px;
+        border-radius: 4px;
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        width: 30px;
+        height: 30px;
+    }
+
+    .btn-view {
+        background-color: #17a2b8;
+    }
+
+    .btn-edit {
+        background-color: #ffc107;
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+    }
+
+    .btn-view:hover {
+        background-color: #138496;
+    }
+
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+    }
+
+    /* Patient Image in Table (thumbnail) */
+    .patient-img { /* Your existing class for small images */
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /* Add this class for the thumbnail in the table, it should be on your <img> tag */
+    .patient-image-thumbnail {
+        width: 40px; /* Ensure this matches your HTML's inline style or remove inline */
+        height: 40px; /* Ensure this matches your HTML's inline style or remove inline */
+        border-radius: 50%; /* Make thumbnail circular */
+        object-fit: cover;
+        border: 1px solid #ddd; /* Subtle border for thumbnail */
+    }
+
+    .no-image { /* Your existing class for no image in table */
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: #777;
+    }
+
+    /* --- Modal Styles (Updated for Modern Look & Mobile Friendly) --- */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1050; /* Higher than other content, but below overlays */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+        padding-top: 50px; /* Space from top */
+        box-sizing: border-box; /* Crucial for consistent sizing */
+    }
+
+    .modal-content {
+        background-color: #ffffff; /* Clean white background */
+        margin: auto; /* Centered horizontally */
+        padding: 30px;
+        border-radius: 12px; /* More rounded corners */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Deeper shadow */
+        width: 90%; /* Default width for mobile */
+        max-width: 750px; /* Max width for larger screens */
+        position: relative;
+        animation: fadeInScale 0.3s ease-out forwards; /* Fade in and slight scale */
+        box-sizing: border-box; /* Include padding in width/height */
+    }
+
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .close-modal {
+        color: #aaaaaa;
+        font-size: 32px;
+        font-weight: bold;
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        padding: 0; /* Remove default button padding */
+        transition: color 0.3s ease;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+        color: #333333;
+    }
+
+    .modal-content h2 { /* Targeting h2 specifically inside modal-content */
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+        font-size: 2em;
+        font-weight: 600;
+        padding-bottom: 0; /* Remove border-bottom from here */
+        border-bottom: none; /* Remove border-bottom from here */
+    }
+
+    /* --- Patient Profile Image Section (Modern & Circular) --- */
+    .modal-header-image {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 25px;
+        border-bottom: 1px solid #e0e0e0; /* Lighter border */
+        margin-bottom: 25px;
+        position: relative;
+        text-align: center;
+    }
+
+    .patient-profile-image {
+        width: 150px; /* Larger image */
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%; /* Perfect circle */
+        border: 5px solid #007bff; /* Primary color border */
+        box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3); /* Vibrant shadow */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 20px;
+    }
+
+    .patient-profile-image:hover {
+        transform: scale(1.05); /* Slight zoom on hover */
+        box-shadow: 0 12px 25px rgba(0, 123, 255, 0.4);
+    }
+
+    .no-image-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background-color: #f2f2f2; /* Light grey background */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #999999;
+        border: 2px dashed #cccccc; /* Dashed border for placeholder */
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .no-image-placeholder i {
+        font-size: 5em; /* Larger icon */
+        color: #cccccc;
+        margin-bottom: 10px;
+    }
+
+    .no-image-placeholder span {
+        font-size: 1em;
+        font-weight: 500;
+        color: #777;
+    }
+
+    .patient-name-header {
+        font-size: 2.2em; /* Larger name */
+        color: #222222;
+        margin: 0;
+        font-weight: 700;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+
+    /* --- Patient Details Grid (Responsive) --- */
+    .modal-section.patient-details-grid { /* Target specifically for the grid layout */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjust minmax for responsiveness */
+        gap: 20px; /* Space between grid items */
+        padding: 10px 0;
+        margin-bottom: 0; /* Remove default margin-bottom from .modal-section */
+    }
+
+    .modal-row {
+        background-color: #f8f9fa; /* Light background for each row item */
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Soft shadow */
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column; /* Stack label and value */
+        border-bottom: none; /* Remove default border-bottom */
+        margin-bottom: 0; /* Remove default margin-bottom */
+    }
+
+    .modal-row:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+    }
+
+    .modal-label {
+        font-weight: 600; /* Bolder label */
+        color: #555555;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+        text-transform: uppercase; /* Uppercase labels */
+        letter-spacing: 0.5px;
+        min-width: unset; /* Override previous min-width for grid */
+    }
+
+    .modal-value {
+        color: #333333;
+        font-size: 1.1em; /* Slightly larger value text */
+        word-wrap: break-word;
+        flex-grow: 1; /* Allow value to take available space */
+    }
+
+    /* Form Styles (ensure these are for the edit/add modal, not view modal) */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        transition: border 0.3s;
+        box-sizing: border-box; /* Include padding and border in width */
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 1em;
+    }
+
+    .modal-footer {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f0f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d; /* Changed from light grey to a standard Bootstrap secondary color */
+        color: white; /* Changed text color to white for better contrast */
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268; /* Darker hover for secondary */
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    /* File input styles */
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    input[type="file"].form-control {
+        padding: 8px;
+        border: 1px solid #ddd;
+        background-color: #f8f9fa;
+    }
+
+    /* Pop-up Container */
+    .popup-container {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+        backdrop-filter: blur(5px); /* Optional: blur background */
+        z-index: 1000; /* Ensure it's on top */
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .popup-container.show {
+        display: flex; /* Flex to center content */
+        opacity: 1;
+    }
+
+    /* Pop-up Content */
+    .popup-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        transform: scale(0.8); /* Start smaller for animation */
+        transition: transform 0.3s ease-in-out;
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .popup-container.show .popup-content {
+        transform: scale(1); /* Scale to full size */
+    }
+
+    .popup-content h3 {
+        color: #28a745; /* Success green */
+        margin-bottom: 15px;
+        font-size: 1.8em;
+    }
+
+    .popup-content p {
+        color: #333;
+        font-size: 1.1em;
+        line-height: 1.5;
+        margin-bottom: 25px;
+    }
+
+    .popup-content .close-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s ease;
+    }
+
+    .popup-content .close-btn:hover {
+        background-color: #0056b3;
+    }
+
+    /* Optional: Icon for success. Make sure you have Font Awesome linked in your <head> */
+    .popup-content .icon {
+        font-size: 3em;
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+
+    /* Styles for image upload/preview in the form */
+    .image-upload {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .image-preview {
+        width: 150px;
+        height: 150px;
+        border: 2px dashed #ccc;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background-color: #f9f9f9;
+    }
+
+    .image-preview img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+
+    /* --- Responsive adjustments --- */
+    @media screen and (max-width: 768px) {
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .patient-table {
+            min-width: unset; /* Allow table to shrink on smaller screens */
+        }
+
+        .patient-table th,
+        .patient-table td {
+            font-size: 0.85rem;
+            padding: 8px 6px; /* Reduce padding */
+        }
+
+        .actions {
+            flex-direction: column; /* Stack action buttons vertically */
+            gap: 5px;
+        }
+
+        .btn-view, .btn-edit, .btn-delete {
+            width: 100%; /* Make buttons full width in stacked column */
+            height: auto;
+            padding: 8px 0; /* Adjust padding for stacked buttons */
+        }
+
+        /* Search responsive adjustments */
+        .search-container {
+            justify-content: flex-start;
+        }
+        
+        .search-bar {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            min-width: 100%;
+        }
+        
+        .search-btn, .clear-search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Modal specific responsiveness */
+        .modal-content {
+            width: 95%; /* Slightly more width on smaller screens */
+            margin-top: 30px; /* Less top margin */
+            padding: 20px; /* Reduced padding */
+            border-radius: 10px; /* Slightly less rounded corners */
+        }
+
+        .modal-content h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .patient-profile-image,
+        .no-image-placeholder {
+            width: 120px; /* Smaller image on mobile */
+            height: 120px;
+        }
+
+        .no-image-placeholder i {
+            font-size: 4em;
+        }
+
+        .patient-name-header {
+            font-size: 1.8em;
+        }
+
+        .modal-section.patient-details-grid {
+            grid-template-columns: 1fr; /* Stack items vertically on very small screens */
+            gap: 15px;
+        }
+
+        .modal-row {
+            padding: 12px 15px;
+        }
+
+        .modal-label {
+            font-size: 0.9em;
+            margin-bottom: 5px; /* Adjust spacing */
+        }
+
+        .modal-value {
+            font-size: 1em;
+        }
+
+        .modal-footer {
+            padding-top: 20px;
+            margin-top: 20px;
+            justify-content: center; /* Center footer buttons on mobile */
+            flex-wrap: wrap; /* Allow buttons to wrap */
+        }
+
+        .modal-footer .btn {
+            width: calc(50% - 6px); /* Two buttons per row, adjusted for gap */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .modal-content {
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .modal-content h2 {
+            font-size: 1.5em;
+        }
+        .header-actions {
+            flex-direction: column; /* Stack header buttons */
+            gap: 10px;
+        }
+        .back-btn, .add-btn {
+            width: 100%; /* Make them full width */
+            justify-content: center; /* Center text/icon */
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu active">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+<div class="main-content">
+    <div class="page-header">
+    <h1>Manage Patients</h1>
+    <div class="header-actions">
+        <a href="{% url 'home' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <div class="search-bar">
+            <input type="text" id="patientSearch" placeholder="Search by patient name..." class="search-input">
+            <button type="button" class="search-btn" onclick="searchPatients()">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button type="button" class="clear-search-btn" onclick="clearSearch()" style="display: none;">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+        <a href="{% url 'patients:add_patient' %}" class="add-btn">
+            <i class="fas fa-plus"></i> Add Patient
+        </a>
+    </div>
+</div>
+
+    {# Display Django messages (for success, info, warning, error from views) #}
+    {% if messages %}
+        <div class="messages-container"> {# Optional: Add a div for custom styling of the message block #}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {# Display form errors if any (from server-side validation). This block is more relevant if a form is directly submitted on this page. #}
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Please correct the following error(s):</strong>
+            <ul>
+                {# Display non-field errors first #}
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endif %}
+
+                {# Display field-specific errors #}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li> {# Added field.label for better context of the error #}
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+      <!-- No results message box -->
+    <div class="no-results-message" id="noResultsMessage">
+        <i class="fas fa-search"></i>
+        <h3>No Patients Found</h3>
+        <p>No patients match your search criteria. Please try a different search term.</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" id="patientSearch" placeholder="Search by patient name..." class="search-input">
+            <button type="button" class="search-btn" onclick="searchPatients()">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button type="button" class="clear-search-btn" onclick="clearSearch()" style="display: none;">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="patient-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Date of Birth</th>
+                    <th>Address</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Emergency Contact</th>
+                    <th>Gender</th>
+                    <th>Nationality</th>
+                    <th>Marital Status</th>
+                    <th>Occupation</th>
+                    <th>Status</th>
+                    <th>Hospital</th>
+                    <th>Blood Group</th>
+                    <th>Genotype</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if patients %} {# Check if there are any patients to display #}
+                    {% for patient in patients %}
+                        <tr data-id="{{ patient.id }}">
+                            <td>{{ patient.id }}</td>
+                            <td>{{ patient.full_name }}</td>
+                            <td>{{ patient.date_of_birth|date:"Y-m-d" }}</td> {# Format date #}
+                            <td>{{ patient.current_address }}</td>
+                            <td>{{ patient.phone_number }}</td>
+                            <td>{{ patient.email|default:"N/A" }}</td> {# Display N/A if email is blank #}
+                            <td>{{ patient.emergency_contact_number }}</td>
+                            <td>{{ patient.gender }}</td>
+                            <td>{{ patient.nationality }}</td>
+                            <td>{{ patient.marital_status }}</td>
+                            <td>{{ patient.occupation|default:"N/A" }}</td> {# Display N/A if occupation is blank #}
+                            <td>{{ patient.current_status }}</td>
+                            <td>{{ patient.current_hospital }}</td> {# Or use a function if current_hospital is a numeric ID #}
+                            <td>{{ patient.blood_group }}</td>
+                            <td>{{ patient.genotype }}</td>
+                            <td>
+                                {# MODIFICATION HERE: Add class="patient-image-thumbnail" and a fallback img tag #}
+                                {% if patient.cloudinary_url %}
+                                    <img src="{{ patient.cloudinary_url }}" alt="{{ patient.full_name }}" class="patient-image-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                {% else %}
+                                    {# This empty/hidden img tag is crucial for JavaScript's querySelector #}
+                                    <img src="#" alt="No Image Available" class="patient-image-thumbnail" style="display: none;">
+                                    <div class="no-image">No Image</div> {# This div is what you see in the table #}
+                                {% endif %}
+                            </td>
+                            <td class="actions">
+                                <a href="#" class="btn-view" title="View Details" onclick="openViewModal(event, {{ patient.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn-edit" title="Edit" onclick="openEditModal(event, {{ patient.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn-delete" title="Delete" onclick="confirmDelete({{ patient.id }}, '{{ patient.full_name }}', event)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="17" style="text-align: center;">No patient records found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="viewModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('viewModal')">&times;</button>
+        <h2>Patient Details</h2>
+        <div id="modalContent"></div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+        </div>
+    </div>
+</div>
+    
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('editModal')">&times;</button>
+        <h2>Edit Patient</h2>
+        <form id="editForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" id="patientId" name="id">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editFullName">Full Name *</label>
+                    <input type="text" id="editFullName" name="full_name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDob">Date of Birth *</label>
+                    <input type="date" id="editDob" name="date_of_birth" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editAddress">Current Address *</label>
+                    <input type="text" id="editAddress" name="current_address" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPhone">Phone Number (e.g., +25078xxxxxxx) *</label>
+                    <input type="tel" id="editPhone" name="phone_number" class="form-control"
+                           pattern="^\+2507[89][0-9]{7}$"
+                           title="Rwandan phone number must start with +25078 or +25079, followed by 7 digits (e.g., +250781234567)" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editEmail">Email *</label>
+                    <input type="email" id="editEmail" name="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmergency">Emergency Contact (e.g., +25078xxxxxxx) *</label>
+                    <input type="tel" id="editEmergency" name="emergency_contact_number" class="form-control"
+                           pattern="^\+2507[89][0-9]{7}$"
+                           title="Emergency contact number must start with +25078 or +25079, followed by 7 digits (e.g., +250781234567)" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editGender">Gender *</label>
+                    <select id="editGender" name="gender" class="form-control" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editNationality">Nationality *</label>
+                    <select id="editNationality" name="nationality" class="form-control" required>
+                        <option value="">Select Nationality</option>
+                        {# This should be populated dynamically from your Django context like the hospitals if you have many #}
+                        {# For now, I'll use a sample based on your previous code #}
+                        <option value="Afghan">Afghan</option>
+                        <option value="Albanian">Albanian</option>
+                        <option value="Algerian">Algerian</option>
+                        <option value="Andorran">Andorran</option>
+                        <option value="Angolan">Angolan</option>
+                        <option value="Antiguan and Barbudan">Antiguan and Barbudan</option>
+                        <option value="Argentine">Argentine</option>
+                        <option value="Armenian">Armenian</option>
+                        <option value="Australian">Australian</option>
+                        <option value="Austrian">Austrian</option>
+                        <option value="Azerbaijani">Azerbaijani</option>
+                        <option value="Bahamian">Bahamian</option>
+                        <option value="Bahraini">Bahraini</option>
+                        <option value="Bangladeshi">Bangladeshi</option>
+                        <option value="Barbadian">Barbadian</option>
+                        <option value="Belarusian">Belarusian</option>
+                        <option value="Belgian">Belgian</option>
+                        <option value="Belizean">Belizean</option>
+                        <option value="Beninese">Beninese</option>
+                        <option value="Bhutanese">Bhutanese</option>
+                        <option value="Bolivian">Bolivian</option>
+                        <option value="Bosnian and Herzegovinian">Bosnian and Herzegovinian</option>
+                        <option value="Botswanan">Botswanan</option>
+                        <option value="Brazilian">Brazilian</option>
+                        <option value="Bruneian">Bruneian</option>
+                        <option value="Bulgarian">Bulgarian</option>
+                        <option value="Burkinabé">Burkinabé</option>
+                        <option value="Burundian">Burundian</option>
+                        <option value="Cabo Verdean">Cabo Verdean</option>
+                        <option value="Cambodian">Cambodian</option>
+                        <option value="Cameroonian">Cameroonian</option>
+                        <option value="Canadian">Canadian</option>
+                        <option value="Central African">Central African</option>
+                        <option value="Chadian">Chadian</option>
+                        <option value="Chilean">Chilean</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Colombian">Colombian</option>
+                        <option value="Comoran">Comoran</option>
+                        <option value="Congolese (Congo-Brazzaville)">Congolese (Congo-Brazzaville)</option>
+                        <option value="Congolese (Congo-Kinshasa)">Congolese (Congo-Kinshasa)</option>
+                        <option value="Costa Rican">Costa Rican</option>
+                        <option value="Croatian">Croatian</option>
+                        <option value="Cuban">Cuban</option>
+                        <option value="Cypriot">Cypriot</option>
+                        <option value="Czech">Czech</option>
+                        <option value="Danish">Danish</option>
+                        <option value="Djiboutian">Djiboutian</option>
+                        <option value="Dominican">Dominican</option>
+                        <option value="Dominican (Republic)">Dominican (Republic)</option>
+                        <option value="East Timorese">East Timorese</option>
+                        <option value="Ecuadorean">Ecuadorean</option>
+                        <option value="Egyptian">Egyptian</option>
+                        <option value="Salvadoran">Salvadoran</option>
+                        <option value="Equatorial Guinean">Equatorial Guinean</option>
+                        <option value="Eritrean">Eritrean</option>
+                        <option value="Estonian">Estonian</option>
+                        <option value="Eswatini">Eswatini</option>
+                        <option value="Ethiopian">Ethiopian</option>
+                        <option value="Fijian">Fijian</option>
+                        <option value="Finnish">Finnish</option>
+                        <option value="French">French</option>
+                        <option value="Gabonese">Gabonese</option>
+                        <option value="Gambian">Gambian</option>
+                        <option value="Georgian">Georgian</option>
+                        <option value="German">German</option>
+                        <option value="Ghanaian">Ghanaian</option>
+                        <option value="Greek">Greek</option>
+                        <option value="Grenadian">Grenadian</option>
+                        <option value="Guatemalan">Guatemalan</option>
+                        <option value="Guinean">Guinean</option>
+                        <option value="Guinea-Bissau">Guinea-Bissau</option>
+                        <option value="Guyanese">Guyanese</option>
+                        <option value="Haitian">Haitian</option>
+                        <option value="Holy See (Vatican City) Citizen">Holy See (Vatican City) Citizen</option>
+                        <option value="Honduran">Honduran</option>
+                        <option value="Hungarian">Hungarian</option>
+                        <option value="Icelandic">Icelandic</option>
+                        <option value="Indian">Indian</option>
+                        <option value="Indonesian">Indonesian</option>
+                        <option value="Iranian">Iranian</option>
+                        <option value="Iraqi">Iraqi</option>
+                        <option value="Irish">Irish</option>
+                        <option value="Israeli">Israeli</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Ivorian">Ivorian</option>
+                        <option value="Jamaican">Jamaican</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Jordanian">Jordanian</option>
+                        <option value="Kazakhstani">Kazakhstani</option>
+                        <option value="Kenyan">Kenyan</option>
+                        <option value="Kiribati">Kiribati</option>
+                        <option value="North Korean">North Korean</option>
+                        <option value="South Korean">South Korean</option>
+                        <option value="Kuwaiti">Kuwaiti</option>
+                        <option value="Kyrgyzstani">Kyrgyzstani</option>
+                        <option value="Lao">Lao</option>
+                        <option value="Latvian">Latvian</option>
+                        <option value="Lebanese">Lebanese</option>
+                        <option value="Lesotho">Lesotho</option>
+                        <option value="Liberian">Liberian</option>
+                        <option value="Libyan">Libyan</option>
+                        <option value="Liechtenstein">Liechtenstein</option>
+                        <option value="Lithuanian">Lithuanian</option>
+                        <option value="Luxembourgish">Luxembourgish</option>
+                        <option value="Madagascan">Madagascan</option>
+                        <option value="Malawian">Malawian</option>
+                        <option value="Malaysian">Malaysian</option>
+                        <option value="Maldivian">Maldivian</option>
+                        <option value="Malian">Malian</option>
+                        <option value="Maltese">Maltese</option>
+                        <option value="Marshallese">Marshallese</option>
+                        <option value="Mauritanian">Mauritanian</option>
+                        <option value="Mauritian">Mauritian</option>
+                        <option value="Mexican">Mexican</option>
+                        <option value="Micronesian">Micronesian</option>
+                        <option value="Moldovan">Moldovan</option>
+                        <option value="Monacan">Monacan</option>
+                        <option value="Mongolian">Mongolian</option>
+                        <option value="Montenegrin">Montenegrin</option>
+                        <option value="Moroccan">Moroccan</option>
+                        <option value="Mozambican">Mozambican</option>
+                        <option value="Myanmar (Burmese)">Myanmar (Burmese)</option>
+                        <option value="Namibian">Namibian</option>
+                        <option value="Nauruan">Nauruan</option>
+                        <option value="Nepalese">Nepalese</option>
+                        <option value="Dutch">Dutch</option>
+                        <option value="New Zealander">New Zealander</option>
+                        <option value="Nicaraguan">Nicaraguan</option>
+                        <option value="Nigerien">Nigerien</option>
+                        <option value="Nigerian">Nigerian</option>
+                        <option value="North Macedonian">North Macedonian</option>
+                        <option value="Norwegian">Norwegian</option>
+                        <option value="Omani">Omani</option>
+                        <option value="Pakistani">Pakistani</option>
+                        <option value="Palauan">Palauan</option>
+                        <option value="Palestinian">Palestinian</option>
+                        <option value="Panamanian">Panamanian</option>
+                        <option value="Papua New Guinean">Papua New Guinean</option>
+                        <option value="Paraguayan">Paraguayan</option>
+                        <option value="Peruvian">Peruvian</option>
+                        <option value="Philippine">Philippine</option>
+                        <option value="Polish">Polish</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Qatari">Qatari</option>
+                        <option value="Romanian">Romanian</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Rwandan">Rwandan</option>
+                        <option value="Kittitian and Nevisian">Kittitian and Nevisian</option>
+                        <option value="Saint Lucian">Saint Lucian</option>
+                        <option value="Saint Vincentian and Grenadine">Saint Vincentian and Grenadine</option>
+                        <option value="Samoan">Samoan</option>
+                        <option value="San Marino">San Marino</option>
+                        <option value="Sao Tomean">Sao Tomean</option>
+                        <option value="Saudi Arabian">Saudi Arabian</option>
+                        <option value="Senegalese">Senegalese</option>
+                        <option value="Serbian">Serbian</option>
+                        <option value="Seychellois">Seychellois</option>
+                        <option value="Sierra Leonean">Sierra Leonean</option>
+                        <option value="Singaporean">Singaporean</option>
+                        <option value="Slovak">Slovak</option>
+                        <option value="Slovenian">Slovenian</option>
+                        <option value="Solomon Islander">Solomon Islander</option>
+                        <option value="Somali">Somali</option>
+                        <option value="South African">South African</option>
+                        <option value="South Sudanese">South Sudanese</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="Sri Lankan">Sri Lankan</option>
+                        <option value="Sudanese">Sudanese</option>
+                        <option value="Surinamese">Surinamese</option>
+                        <option value="Swedish">Swedish</option>
+                        <option value="Swiss">Swiss</option>
+                        <option value="Syrian">Syrian</option>
+                        <option value="Taiwanese">Taiwanese</option>
+                        <option value="Tajikistani">Tajikistani</option>
+                        <option value="Tanzanian">Tanzanian</option>
+                        <option value="Thai">Thai</option>
+                        <option value="Togolese">Togolese</option>
+                        <option value="Tongan">Tongan</option>
+                        <option value="Trinidadian and Tobagonian">Trinidadian and Tobagonian</option>
+                        <option value="Tunisian">Tunisian</option>
+                        <option value="Turkish">Turkish</option>
+                        <option value="Turkmen">Turkmen</option>
+                        <option value="Tuvaluan">Tuvaluan</option>
+                        <option value="Ugandan">Ugandan</option>
+                        <option value="Ukrainian">Ukrainian</option>
+                        <option value="Emirati">Emirati</option>
+                        <option value="British">British</option>
+                        <option value="American">American</option>
+                        <option value="Uruguayan">Uruguayan</option>
+                        <option value="Uzbekistani">Uzbekistani</option>
+                        <option value="Vanuatu">Vanuatu</option>
+                        <option value="Venezuelan">Venezuelan</option>
+                        <option value="Vietnamese">Vietnamese</option>
+                        <option value="Yemeni">Yemeni</option>
+                        <option value="Zambian">Zambian</option>
+                        <option value="Zimbabwean">Zimbabwean</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editMarital">Marital Status *</label>
+                    <select id="editMarital" name="marital_status" class="form-control" required>
+                        <option value="">Select Marital Status</option>
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                        <option value="Widowed">Widowed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editOccupation">Occupation *</label>
+                    <input type="text" id="editOccupation" name="occupation" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editStatus">Current Status *</label>
+                    <select id="editStatus" name="current_status" class="form-control" required>
+                        <option value="">Select Status</option>
+                        <option value="Admitted">Admitted</option>
+                        <option value="Discharged">Discharged</option>
+                        <option value="In-transit">In-transit</option>
+                    </select>
+                </div> {# <-- ADD THIS CLOSING DIV HERE #}
+                
+                {# Start a new form-group for Hospital, ideally within the same form-row if you want them side-by-side #}
+                <div class="form-group"> 
+                    <label for="editHospital">Current Hospital *</label>
+                    <select id="editHospital" name="current_hospital" class="form-control" required>
+                        <option value="">Select Hospital</option>
+                        {% for hospital in approved_hospitals %}
+                            <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div> {# <-- This closes the form-row that now correctly contains two form-groups #}
+
+            <div class="form-row"> {# <-- This starts the next form-row for Blood Group and Genotype #}
+                <div class="form-group">
+                    <label for="editBlood">Blood Group *</label>
+                    <select id="editBlood" name="blood_group" class="form-control" required>
+                        <option value="">Select Blood Group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editGenotype">Genotype *</label>
+                    <select id="editGenotype" name="genotype" class="form-control" required>
+                        <option value="">Select Genotype</option>
+                        <option value="AA">AA</option>
+                        <option value="AS">AS</option>
+                        <option value="SS">SS</option>
+                        <option value="AC">AC</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="editImage">Patient Image *</label>
+                <div class="image-upload">
+                    <div class="image-preview" id="editImagePreview">
+                        <span>No image selected</span>
+                    </div>
+                    <input type="file" id="editImage" name="image" class="form-control" accept="image/*" onchange="previewEditImage(this)">
+                </div>
+                <small class="form-text text-muted">Max size: 2MB (JPEG, PNG)</small>
+                <div id="currentImageDisplay" style="margin-top: 10px;">
+                    {# Current image and notes will be populated here by JavaScript #}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="successPopup" class="popup-container">
+    <div class="popup-content">
+        <div class="icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 id="popupTitle">Success!</h3>
+        <p id="popupMessage"></p>
+        <button class="close-btn" onclick="hidePopup()">Close</button>
+    </div>
+</div>
+
+<script>
+    // Search functionality
+    function searchPatients() {
+        const searchInput = document.getElementById('patientSearch');
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        const clearBtn = document.querySelector('.clear-search-btn');
+        const tableRows = document.querySelectorAll('.patient-table tbody tr');
+        const noResultsMessage = document.getElementById('noResultsMessage') || document.createElement('div');
+        noResultsMessage.id = 'noResultsMessage';
+        noResultsMessage.className = 'no-results-message';
+        noResultsMessage.innerHTML = `
+            <i class="fas fa-search"></i>
+            <h3>No Patients Found</h3>
+            <p>No patients match your search criteria. Please try a different search term.</p>
+        `;
+        
+        // Add the message to DOM if it doesn't exist
+        if (!document.getElementById('noResultsMessage')) {
+            document.querySelector('.table-container').after(noResultsMessage);
+        }
+        
+        let hasResults = false;
+
+        tableRows.forEach(row => {
+            const fullNameCell = row.querySelector('td:nth-child(2)'); // Full name is in the 2nd column
+            if (fullNameCell) {
+                const fullName = fullNameCell.textContent.trim().toLowerCase();
+                if (fullName.includes(searchTerm)) {
+                    row.style.display = '';
+                    hasResults = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+
+        // Show/hide clear button based on search
+        if (searchTerm) {
+            clearBtn.style.display = '';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+
+        // Show message if no results found
+        noResultsMessage.style.display = hasResults ? 'none' : 'block';
+    }
+
+    function clearSearch() {
+        const searchInput = document.getElementById('patientSearch');
+        searchInput.value = '';
+        document.querySelector('.clear-search-btn').style.display = 'none';
+        
+        // Show all rows
+        const tableRows = document.querySelectorAll('.patient-table tbody tr');
+        tableRows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        // Hide no results message
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        if (noResultsMessage) {
+            noResultsMessage.style.display = 'none';
+        }
+    }
+    // For 'Add Patient' form image preview
+    function previewImage(input) {
+        const preview = document.getElementById('imagePreview'); // This is for the add form
+        if (!preview) { // Add a check to prevent errors if element doesn't exist
+            console.warn("Element with ID 'imagePreview' not found.");
+            return;
+        }
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = function() {
+            preview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = reader.result;
+            preview.appendChild(img);
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = '<span>No image selected</span>';
+        }
+    }
+
+    // For 'Edit Patient' modal image preview
+    function previewEditImage(input) {
+        const preview = document.getElementById('editImagePreview'); // This is for the edit modal
+        if (!preview) { // Add a check
+            console.warn("Element with ID 'editImagePreview' not found.");
+            return;
+        }
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = function() {
+            preview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = reader.result;
+            preview.appendChild(img);
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+            document.getElementById('currentImageDisplay').innerHTML = ''; // Clear previous message
+        } else {
+            preview.innerHTML = '<span>No new image selected</span>';
+            // If user clears new image selection, and there was an existing one,
+            // re-display the existing one's preview (requires storing it)
+            const patientId = document.getElementById('patientId').value;
+            const patientRow = document.querySelector(`tr[data-id="${patientId}"]`);
+            // Ensure patientRow exists before trying to access its children
+            const imageUrl = patientRow ? (patientRow.querySelector('.patient-image-thumbnail') ? patientRow.querySelector('.patient-image-thumbnail').src : null) : null;
+            if (imageUrl && imageUrl !== 'None') {
+                document.getElementById('currentImageDisplay').innerHTML = `
+                    <img src="${imageUrl}" alt="Current Patient Image" style="max-width: 100px; max-height: 100px; display: block; margin-bottom: 5px;">
+                    <p>Current image retained. Upload a new file to change.</p>
+                `;
+            } else {
+                 document.getElementById('currentImageDisplay').innerHTML = `<p>No current image. Please upload one.</p>`;
+            }
+        }
+    }
+
+
+    // Function to show the custom pop-up
+    function showPopup(message, isError = false) {
+        const popup = document.getElementById('successPopup');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMessage = document.getElementById('popupMessage');
+        const popupIcon = popup.querySelector('.icon i');
+
+        popupMessage.textContent = message;
+
+        if (isError) {
+            popupTitle.textContent = 'Error!';
+            popupTitle.style.color = '#dc3545'; // Red for error
+            popupIcon.className = 'fas fa-times-circle'; // Error icon
+            popupIcon.style.color = '#dc3545';
+        } else {
+            popupTitle.textContent = 'Success!';
+            popupTitle.style.color = '#28a745'; // Green for success
+            popupIcon.className = 'fas fa-check-circle'; // Success icon
+            popupIcon.style.color = '#28a745';
+        }
+
+        popup.classList.add('show');
+    }
+
+    // Function to hide the custom pop-up
+    function hidePopup() {
+        const popup = document.getElementById('successPopup');
+        popup.classList.remove('show');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listener for Enter key in search input
+        document.getElementById('patientSearch').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                searchPatients();
+            }
+        });
+
+        const table = document.querySelector('.patient-table');
+        if (table) {
+            table.addEventListener('mouseover', function(e) {
+                const row = e.target.closest('tr');
+                if (row) {
+                    row.style.backgroundColor = '#e6f7ff';
+                }
+            });
+            table.addEventListener('mouseout', function(e) {
+                const row = e.target.closest('tr');
+                if (row) {
+                    row.style.backgroundColor = '';
+                }
+            });
+        }
+
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+                parentLi.classList.toggle('active');
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+
+        const today = new Date().toISOString().split('T')[0];
+        const dobInput = document.getElementById('date_of_birth');
+        if (dobInput) {
+            dobInput.setAttribute('max', today);
+        }
+        const editDobInput = document.getElementById('editDob');
+        if (editDobInput) {
+            editDobInput.setAttribute('max', today);
+        }
+
+        // --- Check for Django messages and display in pop-up ---
+        {% if messages %}
+            {% for message in messages %}
+                {% if "success" in message.tags or "info" in message.tags %}
+                    showPopup("{{ message|escapejs }}", false);
+                {% elif "error" in message.tags %}
+                    showPopup("{{ message|escapejs }}", true);
+                {% else %}
+                    alert("{{ message|escapejs }}");
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        // Initialize allPatientsData on page load
+        // This is a client-side scraping. For larger datasets, an AJAX endpoint is better.
+        const patientTable = document.querySelector('.patient-table tbody');
+        if (patientTable) {
+            Array.from(patientTable.rows).forEach(row => {
+                const cells = row.querySelectorAll('td');
+                // Ensure sufficient cells for data to avoid errors
+                if (cells.length >= 6) { // Index 4 for phone, 5 for email, so need at least 6 cells
+                    allPatientsData.push({
+                        id: row.dataset.id, // Make sure your <tr> has data-id attribute
+                        phone_number: cells[4] ? cells[4].textContent.trim() : '',
+                        email: cells[5] ? cells[5].textContent.trim() : ''
+                    });
+                }
+            });
+        }
+    });
+
+    // Client-side validation for the 'Add Patient' form
+    // This is assuming you have a form with id 'patient-form' for adding
+    const addPatientForm = document.querySelector('.patient-form');
+    if (addPatientForm) {
+        addPatientForm.addEventListener('submit', function(e) {
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+            let errorMessage = '';
+
+            requiredFields.forEach(field => {
+                if (field.type === 'file') {
+                    if (!field.files.length) {
+                        field.style.borderColor = '#dc3545';
+                        isValid = false;
+                    } else {
+                        field.style.borderColor = '#ddd';
+                    }
+                } else if (!field.value.trim()) {
+                    field.style.borderColor = '#dc3545';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            });
+
+            if (!isValid && errorMessage === '') { // Only add generic message if specific ones aren't added yet
+                errorMessage += 'Please fill in all required fields marked with *.\n';
+            }
+
+            const phoneNumber = document.getElementById('phone_number'); // Assuming this ID for add form
+            const emergencyContact = document.getElementById('emergency_contact_number'); // Assuming this ID for add form
+            const rwandaPhonePattern = /^\+2507[89][0-9]{7}$/;
+
+            if (phoneNumber && phoneNumber.value.trim() && !rwandaPhonePattern.test(phoneNumber.value.trim())) {
+                phoneNumber.style.borderColor = '#dc3545';
+                isValid = false;
+                errorMessage += 'Patient Phone Number must be in Rwandan format (e.g., +250781234567).\n';
+            } else if (phoneNumber) {
+                phoneNumber.style.borderColor = '#ddd';
+            }
+
+            if (emergencyContact && emergencyContact.value.trim() && !rwandaPhonePattern.test(emergencyContact.value.trim())) {
+                emergencyContact.style.borderColor = '#dc3545';
+                isValid = false;
+                errorMessage += 'Emergency Contact Number must be in Rwandan format (e.g., +250781234567).\n';
+            } else if (emergencyContact) {
+                emergencyContact.style.borderColor = '#ddd';
+            }
+
+            if (phoneNumber && emergencyContact && phoneNumber.value.trim() && emergencyContact.value.trim() && phoneNumber.value.trim() === emergencyContact.value.trim()) {
+                phoneNumber.style.borderColor = '#dc3545';
+                emergencyContact.style.borderColor = '#dc3545';
+                isValid = false;
+                errorMessage += 'Emergency Contact Number cannot be the same as the Patient Phone Number.\n';
+            } else if (phoneNumber && emergencyContact) {
+                 // Reset only if they previously matched and are now different (important for re-validation)
+                if (phoneNumber.value.trim() !== '' && phoneNumber.style.borderColor === 'rgb(220, 53, 69)') {
+                    phoneNumber.style.borderColor = '#ddd';
+                }
+                if (emergencyContact.value.trim() !== '' && emergencyContact.style.borderColor === 'rgb(220, 53, 69)') {
+                    emergencyContact.style.borderColor = '#ddd';
+                }
+            }
+
+
+            if (!isValid) {
+                e.preventDefault();
+                showPopup(errorMessage, true);
+            }
+        });
+    }
+
+
+    // Functions for the Edit Modal
+    let originalEditEmail = ''; // Store original email for uniqueness check
+    let originalEditPhone = ''; // Store original phone for uniqueness check
+    let allPatientsData = []; // To store data of all patients for client-side uniqueness check
+
+    function openViewModal(event, patientId) {
+    event.preventDefault();
+    console.log("Attempting to open view modal for ID:", patientId);
+    const patientRow = document.querySelector(`tr[data-id="${patientId}"]`);
+    if (!patientRow) {
+        console.error("View: Patient row not found for ID:", patientId);
+        showPopup("Could not find patient details for viewing. Please refresh.", true);
+        return;
+    }
+
+    // --- DEBUGGING START ---
+    const imageElement = patientRow.querySelector('.patient-image-thumbnail');
+    console.log("Found image element in row:", imageElement);
+
+    let scrapedImageUrl = null;
+    if (imageElement) {
+        scrapedImageUrl = imageElement.src;
+        console.log("Scraped image URL from element.src:", scrapedImageUrl);
+    } else {
+        console.log("No element with class 'patient-image-thumbnail' found in the row.");
+    }
+    // --- DEBUGGING END ---
+
+
+    const cells = patientRow.querySelectorAll('td');
+    if (cells.length < 15) {
+        console.error("View: Not enough cells in patient row for ID:", patientId, "Found:", cells.length);
+        showPopup("Incomplete patient data found. Cannot display details.", true);
+        return;
+    }
+
+    const patient = {
+        id: cells[0]?.textContent.trim() || '',
+        full_name: cells[1]?.textContent.trim() || '',
+        date_of_birth: cells[2]?.textContent.trim() || '',
+        current_address: cells[3]?.textContent.trim() || '',
+        phone_number: cells[4]?.textContent.trim() || '',
+        email: cells[5]?.textContent.trim() || '',
+        emergency_contact_number: cells[6]?.textContent.trim() || '',
+        gender: cells[7]?.textContent.trim() || '',
+        nationality: cells[8]?.textContent.trim() || '',
+        marital_status: cells[9]?.textContent.trim() || '',
+        occupation: cells[10]?.textContent.trim() || '',
+        current_status: cells[11]?.textContent.trim() || '',
+        current_hospital: cells[12]?.textContent.trim() || '',
+        blood_group: cells[13]?.textContent.trim() || '',
+        genotype: cells[14]?.textContent.trim() || '',
+        // Use the scraped URL directly here
+        image_url: scrapedImageUrl
+    };
+
+    // --- DEBUGGING START ---
+    console.log("Patient object's image_url:", patient.image_url);
+    // --- DEBUGGING END ---
+
+    const modalContentDiv = document.getElementById('modalContent');
+    if (!modalContentDiv) {
+        console.error("Element with ID 'modalContent' not found for view modal.");
+        return;
+    }
+
+    modalContentDiv.innerHTML = `
+        <div class="modal-header-image">
+            ${patient.image_url && patient.image_url !== 'None' && patient.image_url !== '#' ? `
+                <img src="${patient.image_url}" alt="${patient.full_name}'s Photo" class="patient-profile-image">
+            ` : `
+                <div class="no-image-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                    <span>No Photo Available</span>
+                </div>
+            `}
+            <h3 class="patient-name-header">${patient.full_name}</h3>
+        </div>
+
+        <div class="modal-section patient-details-grid">
+            <div class="modal-row">
+                <span class="modal-label">ID:</span>
+                <span class="modal-value">${patient.id}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Date of Birth:</span>
+                <span class="modal-value">${patient.date_of_birth}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Address:</span>
+                <span class="modal-value">${patient.current_address}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Phone:</span>
+                <span class="modal-value">${patient.phone_number}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Email:</span>
+                <span class="modal-value">${patient.email}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Emergency Contact:</span>
+                <span class="modal-value">${patient.emergency_contact_number}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Gender:</span>
+                <span class="modal-value">${patient.gender}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Nationality:</span>
+                <span class="modal-value">${patient.nationality}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Marital Status:</span>
+                <span class="modal-value">${patient.marital_status}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Occupation:</span>
+                <span class="modal-value">${patient.occupation}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Current Status:</span>
+                <span class="modal-value">${patient.current_status}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Current Hospital:</span>
+                <span class="modal-value">${patient.current_hospital}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Blood Group:</span>
+                <span class="modal-value">${patient.blood_group}</span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-label">Genotype:</span>
+                <span class="modal-value">${patient.genotype}</span>
+            </div>
+        </div>
+    `;
+    document.getElementById('viewModal').style.display = 'block';
+}
+
+
+    function openEditModal(event, patientId) {
+        event.preventDefault();
+        console.log("Attempting to open edit modal for ID:", patientId);
+
+        const patientRow = document.querySelector(`tr[data-id="${patientId}"]`);
+        if (!patientRow) {
+            console.error("Edit: Patient row not found for ID:", patientId);
+            showPopup("Could not find patient details for editing. Please refresh.", true);
+            return;
+        }
+
+        const cells = patientRow.querySelectorAll('td');
+         if (cells.length < 15) {
+            console.error("Edit: Not enough cells in patient row for ID:", patientId, "Found:", cells.length);
+            showPopup("Incomplete patient data found. Cannot edit details.", true);
+            return;
+        }
+
+        // Extracting data safely with optional chaining and fallback
+        const patient = {
+            id: patientId, // Use the passed patientId for consistency
+            full_name: cells[1]?.textContent.trim() || '',
+            date_of_birth: cells[2]?.textContent.trim() || '',
+            current_address: cells[3]?.textContent.trim() || '',
+            phone_number: cells[4]?.textContent.trim() || '',
+            email: cells[5]?.textContent.trim() || '',
+            emergency_contact_number: cells[6]?.textContent.trim() || '',
+            gender: cells[7]?.textContent.trim() || '',
+            nationality: cells[8]?.textContent.trim() || '',
+            marital_status: cells[9]?.textContent.trim() || '',
+            occupation: cells[10]?.textContent.trim() || '',
+            current_status: cells[11]?.textContent.trim() || '',
+            current_hospital_name: cells[12]?.textContent.trim() || '', // This is the name from the table
+            blood_group: cells[13]?.textContent.trim() || '',
+            genotype: cells[14]?.textContent.trim() || '',
+            image_url: patientRow.querySelector('.patient-image-thumbnail') ? patientRow.querySelector('.patient-image-thumbnail').src : null
+        };
+
+        // Store original values for client-side uniqueness checks
+        originalEditEmail = patient.email;
+        originalEditPhone = patient.phone_number;
+        console.log("Original Email:", originalEditEmail, "Original Phone:", originalEditPhone);
+
+
+        // Set the form's action URL dynamically
+        const editForm = document.getElementById('editForm');
+        if (editForm) {
+            editForm.action = `{% url 'patients:edit_patient' pk='0' %}`.replace('0', patient.id);
+
+            // Populate the edit form fields
+            document.getElementById('patientId').value = patient.id;
+            document.getElementById('editFullName').value = patient.full_name;
+            document.getElementById('editDob').value = patient.date_of_birth;
+            document.getElementById('editAddress').value = patient.current_address;
+            document.getElementById('editPhone').value = patient.phone_number;
+            document.getElementById('editEmail').value = patient.email;
+            document.getElementById('editEmergency').value = patient.emergency_contact_number;
+            document.getElementById('editGender').value = patient.gender;
+            document.getElementById('editNationality').value = patient.nationality;
+            document.getElementById('editMarital').value = patient.marital_status;
+            document.getElementById('editOccupation').value = patient.occupation;
+            document.getElementById('editStatus').value = patient.current_status;
+
+            // Populate Current Hospital dropdown by matching name to ID
+            const editHospitalSelect = document.getElementById('editHospital');
+            if (editHospitalSelect) {
+                editHospitalSelect.value = ""; // Reset before setting
+                // Loop through options to find matching name and set its value
+                for (let i = 0; i < editHospitalSelect.options.length; i++) {
+                    // console.log("Comparing:", editHospitalSelect.options[i].text.trim(), "with", patient.current_hospital_name);
+                    if (editHospitalSelect.options[i].text.trim() === patient.current_hospital_name) {
+                        editHospitalSelect.value = editHospitalSelect.options[i].value;
+                        break;
+                    }
+                }
+                 if (editHospitalSelect.value === "" && patient.current_hospital_name) {
+                    console.warn(`Could not find hospital ID for name: "${patient.current_hospital_name}"`);
+                 }
+            }
+
+
+            document.getElementById('editBlood').value = patient.blood_group;
+            document.getElementById('editGenotype').value = patient.genotype;
+
+            // Handle Patient Image field requirement and preview
+            const editImageInput = document.getElementById('editImage');
+            const editImagePreview = document.getElementById('editImagePreview');
+            const currentImageDisplay = document.getElementById('currentImageDisplay');
+
+            // Reset previous preview content and clear file input
+            if (editImagePreview) editImagePreview.innerHTML = '<span>No new image selected</span>';
+            if (editImageInput) editImageInput.value = '';
+
+            if (patient.image_url && patient.image_url !== 'None' && patient.image_url !== '{{ MEDIA_URL }}') { // Check for a valid image URL
+                if (currentImageDisplay) {
+                    currentImageDisplay.innerHTML = `
+                        <img src="${patient.image_url}" alt="Current Patient Image" style="max-width: 100px; max-height: 100px; display: block; margin-bottom: 5px;">
+                        <p>Current image. Upload a new file to change.</p>
+                    `;
+                }
+                if (editImageInput) editImageInput.removeAttribute('required'); // Not required if an image already exists
+            } else {
+                if (currentImageDisplay) currentImageDisplay.innerHTML = `<p>No current image. Please upload a new image.</p>`;
+                if (editImageInput) editImageInput.setAttribute('required', 'required'); // Required if no image exists
+            }
+
+            document.getElementById('editModal').style.display = 'block';
+            console.log("Edit modal opened successfully for ID:", patientId);
+        } else {
+            console.error("Edit form with ID 'editForm' not found.");
+            showPopup("Error: Edit form not found.", true);
+        }
+    }
+
+    function confirmDelete(patientId, patientName, event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        if (confirm(`Are you sure you want to delete "${patientName}"? This action cannot be undone.`)) {
+            const deleteUrl = `{% url 'patients:delete_patient' pk='0' %}`.replace('0', patientId);
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    showPopup(`Patient ${patientName} deleted successfully.`, false);
+                    document.querySelector(`tr[data-id="${patientId}"]`).remove();
+                    // Optional: Remove from allPatientsData array for client-side checks
+                    allPatientsData = allPatientsData.filter(p => p.id !== patientId.toString());
+                } else {
+                    response.json().then(errorData => {
+                        showPopup(`Failed to delete patient ${patientName}: ${errorData.message || 'An error occurred.'}`, true);
+                        console.error('Delete failed:', errorData);
+                    }).catch(() => {
+                        showPopup(`Failed to delete patient ${patientName}. Server responded with status: ${response.status}`, true);
+                    });
+                }
+            })
+            .catch(error => {
+                showPopup(`Error during delete: ${error.message}`, true);
+                console.error('Error during delete:', error);
+            });
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        const form = document.getElementById('editForm');
+        if (form) {
+            form.reset();
+            form.querySelectorAll('.form-control').forEach(field => {
+                field.style.borderColor = '#ddd'; // Reset border colors
+            });
+            // Also reset required attribute for image input if it was set dynamically
+            const editImageInput = document.getElementById('editImage');
+            if (editImageInput) {
+                editImageInput.removeAttribute('required');
+            }
+        }
+        const editImagePreview = document.getElementById('editImagePreview');
+        if (editImagePreview) editImagePreview.innerHTML = '<span>No new image selected</span>';
+        const currentImageDisplay = document.getElementById('currentImageDisplay');
+        if (currentImageDisplay) currentImageDisplay.innerHTML = '';
+    }
+
+    // Handle form submission for edit modal with client-side validation
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent default form submission
+
+        let isValid = true;
+        let errorMessage = '';
+
+        // Reset all border colors before re-validation
+        this.querySelectorAll('.form-control').forEach(field => {
+            field.style.borderColor = '#ddd';
+        });
+
+        // 1. Check all required fields (HTML 'required' attribute)
+        const requiredFields = this.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            // Skip the file input here; its 'required' state is managed dynamically and checked below
+            if (field.type === 'file') return;
+
+            if (!field.value.trim()) {
+                field.style.borderColor = '#dc3545';
+                isValid = false;
+                if (!errorMessage.includes('Please fill in all required fields marked with *.')) {
+                    errorMessage += 'Please fill in all required fields marked with *.\n';
+                }
+            }
+        });
+
+
+        // 2. Validate Rwandan phone number format for editPhone and editEmergency
+        const editPhone = document.getElementById('editPhone');
+        const editEmergency = document.getElementById('editEmergency');
+        const editEmail = document.getElementById('editEmail');
+        const rwandaPhonePattern = /^\+2507[89][0-9]{7}$/;
+
+        if (editPhone && editPhone.value.trim() && !rwandaPhonePattern.test(editPhone.value.trim())) {
+            editPhone.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Patient Phone Number must be in Rwandan format (e.g., +250781234567).\n';
+        }
+
+        if (editEmergency && editEmergency.value.trim() && !rwandaPhonePattern.test(editEmergency.value.trim())) {
+            editEmergency.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Emergency Contact Number must be in Rwandan format (e.g., +250781234567).\n';
+        }
+
+        // 3. Emergency contact and patient phone number should not be the same
+        if (editPhone && editEmergency && editPhone.value.trim() && editEmergency.value.trim() && editPhone.value.trim() === editEmergency.value.trim()) {
+            editPhone.style.borderColor = '#dc3545';
+            editEmergency.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Emergency Contact Number cannot be the same as the Patient Phone Number.\n';
+        }
+
+        // 4. Validate image field based on whether an image already exists or a new one is selected
+        const editImageInput = document.getElementById('editImage');
+        if (editImageInput && editImageInput.hasAttribute('required') && !editImageInput.files.length) {
+            editImageInput.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Patient Image is required. Please upload one.\n';
+        }
+
+        // 5. Client-side uniqueness check for Phone Number and Email
+        // This is a basic client-side check. Server-side validation is definitive.
+        const currentPatientId = document.getElementById('patientId').value;
+
+        // Check Phone Number uniqueness
+        const newPhone = editPhone ? editPhone.value.trim() : '';
+        if (newPhone && newPhone !== originalEditPhone) { // Only check if phone number has changed
+            const isPhoneTaken = allPatientsData.some(patient =>
+                patient.id !== currentPatientId && patient.phone_number === newPhone
+            );
+            if (isPhoneTaken) {
+                if (editPhone) editPhone.style.borderColor = '#dc3545';
+                isValid = false;
+                errorMessage += 'This phone number is already in use by another patient.\n';
+            }
+        }
+
+        // Check Email uniqueness
+        const newEmail = editEmail ? editEmail.value.trim() : '';
+        if (newEmail && newEmail !== originalEditEmail) { // Only check if email has changed
+            const isEmailTaken = allPatientsData.some(patient =>
+                patient.id !== currentPatientId && patient.email === newEmail
+            );
+            if (isEmailTaken) {
+                if (editEmail) editEmail.style.borderColor = '#dc3545';
+                isValid = false;
+                errorMessage += 'This email address is already in use by another patient.\n';
+            }
+        }
+
+
+        if (!isValid) {
+            showPopup(errorMessage, true); // Show all collected error messages in the custom popup
+            return; // Stop the form submission
+        }
+
+        // If client-side validation passes, proceed with AJAX submission
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url; // Handle redirection (e.g., if Django redirects after success)
+                return; // Stop further processing
+            }
+            // Check if the response is JSON before parsing
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                // If not JSON, it might be an HTML error page or empty response
+                return response.text().then(text => {
+                    console.error("Server responded with non-JSON content:", text);
+                    try {
+                        return JSON.parse(text); // Try parsing as JSON in case of malformed JSON
+                    } catch (e) {
+                        // If it's not JSON, return a generic error object
+                        return { status: 'error', message: 'Unexpected server response format.', fullResponse: text };
+                    }
+                });
+            }
+        })
+        .then(data => {
+            if (!data) { // Handle case where data might be undefined
+                console.error('No data received from server or unexpected parsing issue.');
+                showPopup('An unexpected server error occurred (no data received).', true); // Show error for this case
+                return;
+            }
+
+            if (data.status === 'success') {
+                // Display the success pop-up with the message from the server
+                showPopup(data.message, false); // Use data.message from the server
+
+                // Close the edit modal immediately
+                closeModal('editModal');
+
+                // Set a timeout to reload the page after 3 seconds (3000 milliseconds)
+                // 30 seconds is generally too long for a success message, consider 3-5 seconds.
+                setTimeout(() => {
+                    location.reload();
+                }, 3000); // 3000 milliseconds = 3 seconds
+
+            } else if (data.status === 'error') {
+                let serverErrors = '';
+                if (data.errors) {
+                    for (const fieldName in data.errors) {
+                        const fieldErrors = data.errors[fieldName];
+                        // Convert field name to match input ID (e.g., full_name -> editFullName)
+                        const inputId = `edit${fieldName.split('_').map((word, index) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)).join('')}`;
+                        const inputField = document.getElementById(inputId);
+                        if (inputField) {
+                            inputField.style.borderColor = '#dc3545'; // Highlight problematic field
+                        }
+                        serverErrors += `${fieldName}: ${fieldErrors.join('; ')}\n`;
+                    }
+                } else if (data.fullResponse) {
+                     // If we caught a non-JSON response, show a more specific message from the response text
+                     serverErrors = data.message + (data.fullResponse.length > 200 ? data.fullResponse.substring(0, 200) + '...' : data.fullResponse);
+                }
+                showPopup('Error updating patient: ' + (serverErrors || data.message || 'An unknown error occurred.'), true);
+                console.error('Server-side validation errors:', data.errors || data.fullResponse);
+            } else {
+                console.warn("Unexpected response from server:", data);
+                showPopup('An unexpected server response occurred. Check console for details.', true); // Show generic error for unexpected status
+            }
+        })
+        .catch(error => {
+            showPopup('A network or unexpected error occurred: ' + error.message, true);
+            console.error('Error during patient update:', error);
+        });
+    });
+</script>
+</body>
+</html>

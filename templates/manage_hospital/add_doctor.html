@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Doctor</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Main Layout */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: rgb(248, 248, 248);
+            padding: 20px 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            transition: all 0.3s;
+            box-shadow: 2px 0 5px rgba(251, 238, 238, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            margin-right: 10px;
+        }
+        
+        .logo span {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            list-style: none;
+            padding: 0 15px;
+        }
+        
+        .nav-links li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 10px 10px;
+            color: #0f0e0e;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .nav-links li a:hover {
+            color: #1873cd;
+        }
+        
+        .nav-links li a i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .nav-links li a .link-name {
+            flex: 1;
+        }
+        
+        .nav-links li a .dropdown {
+            transition: transform 0.3s;
+        }
+        
+        .nav-links li.active a {
+            background: #3498db;
+            color: white;
+        }
+        
+        .sub-menu {
+            list-style: none;
+            padding-left: 20px;
+            margin-top: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .sub-menu.active {
+            max-height: 500px;
+        }
+        
+        .sub-menu li a {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .logout-container {
+            padding: 0 20px;
+            margin-top: 30px;
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #050101;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            color:#1873cd;
+        }
+        
+        .logout-btn i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background: #fff;
+            margin-left: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            min-height: calc(100vh - 40px);
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .back-btn {
+            border: 2px solid #3498db;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* Form Styles */
+        .form-container {
+            margin-top: 20px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .form-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 1em;
+            padding-right: 30px;
+        }
+        
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Form Footer */
+        .form-footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .logo span, .link-name, .logout-btn span {
+                display: none;
+            }
+            
+            .logo i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .nav-links li a {
+                justify-content: center;
+            }
+            
+            .nav-links li a i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+            
+            .dropdown {
+                display: none;
+            }
+            
+            .sub-menu {
+                position: absolute;
+                left: 100%;
+                top: 0;
+                width: 200px;
+                background: #2c3e50;
+                border-radius: 0 5px 5px 0;
+                z-index: 100;
+                padding-left: 0;
+            }
+            
+            .sub-menu li a {
+                padding: 12px 15px;
+                justify-content: flex-start;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .form-control {
+                font-size: 16px;
+            }
+        }
+        
+        /* Validation Styles */
+        .is-invalid {
+            border-color: #dc3545 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+               <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1>Add New Doctor</h1>
+                <a href="{% url 'manage_doctors' %}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Doctors
+                </a>
+            </div>
+            
+            <div class="form-container">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {# Display messages from Django backend #}
+                    {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    
+                    <div class="form-section">
+                        <h3>Personal Information</h3>
+                        <div class="form-group">
+                            <label for="fullName">Full Name:</label>
+                            <input type="text" id="fullName" name="full_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date of Birth:</label>
+                            <input type="date" id="dateOfBirth" name="date_of_birth" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gender">Gender:</label>
+                            <select id="gender" name="gender" class="form-control" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nationality">Nationality:</label>
+                            <input type="text" id="nationality" name="nationality" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Contact Information</h3>
+                        <div class="form-group">
+                            <label for="address">Address:</label>
+                            <input type="text" id="address" name="address" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Phone Number:</label>
+                            <input type="tel" id="phone" name="phone_number" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Professional Information</h3>
+                        <div class="form-group">
+                            <label for="specialty">Specialty:</label>
+                            <input type="text" id="specialty" name="specialty" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="hospital">Hospital:</label>
+                            <select id="hospital" name="hospital" class="form-control" required>
+                                <option value="">Select Hospital</option>
+                                {% for hospital in hospitals %}
+                                    <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="licenseNumber">License Number:</label>
+                            <input type="text" id="licenseNumber" name="license_number" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-footer">
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <button type="submit" class="btn btn-primary">Add Doctor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const submenuItems = document.querySelectorAll('.submenu > a');
+            
+            submenuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const submenu = this.nextElementSibling;
+                    
+                    // Close all other submenus
+                    document.querySelectorAll('.sub-menu').forEach(menu => {
+                        if (menu !== submenu) {
+                            menu.classList.remove('active');
+                            menu.previousElementSibling.querySelector('.dropdown').style.transform = 'rotate(0deg)';
+                        }
+                    });
+                    
+                    // Toggle current submenu
+                    submenu.classList.toggle('active');
+                    const dropdownIcon = this.querySelector('.dropdown');
+                    
+                    if (submenu.classList.contains('active')) {
+                        dropdownIcon.style.transform = 'rotate(90deg)';
+                    } else {
+                        dropdownIcon.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

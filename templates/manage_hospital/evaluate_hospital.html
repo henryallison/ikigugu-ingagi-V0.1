@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluate Hospital Credentials</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+            background: #fff;
+            overflow-x: auto;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .back-btn {
+            border: 2px solid #3498db;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* Search bar styles */
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .search-input-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 15px 8px 35px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+        }
+
+        .search-btn, .clear-search-btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .search-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .clear-search-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .clear-search-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* No results message box */
+        .no-results-message {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .no-results-message i {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .no-results-message h3 {
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+
+        .no-results-message p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 20px;
+        }
+        
+        .hospital-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .hospital-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .hospital-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+        
+        .hospital-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .hospital-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-download, .btn-delete {
+            padding: 6px 8px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .btn-download {
+            background-color: #17a2b8;
+        }
+        
+        .btn-delete {
+            background-color: #dc3545;
+        }
+        
+        .btn-download:hover {
+            background-color: #138496;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        
+        /* Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-container {
+                max-width: 100%;
+                order: -1;
+            }
+
+            .back-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hospital-table td {
+                font-size: 0.85rem;
+            }
+            
+            .btn-download, .btn-delete {
+                width: 25px;
+                height: 25px;
+                padding: 4px 6px;
+            }
+        }
+
+        /* Sidebar Dropdown Fix */
+        .submenu.active .sub-menu {
+            display: block;
+            max-height: 500px;
+        }
+        
+        .sub-menu {
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding-left: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .no-docs {
+            color: #999;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+
+        /* Toast styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+        
+        /* Loading spinner */
+        .fa-spin {
+            animation: fa-spin 1s infinite linear;
+        }
+        @keyframes fa-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+             <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#" onclick="toggleSubmenu(event)">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <!-- Patients Dropdown -->
+                <li class="submenu">
+                    <a href="#" onclick="toggleSubmenu(event)">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                     <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+<div class="main-content">
+            <div class="page-header">
+                <h1>Evaluate Hospital Credentials</h1>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <div class="search-input-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search by hospital name...">
+                        </div>
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button class="clear-search-btn" id="clearSearchBtn">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                    <a href="{% url 'manage_hospital_home' %}" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+            
+            <!-- No results message box -->
+            <div class="no-results-message" id="noResultsMessage">
+                <i class="fas fa-search"></i>
+                <h3>No Hospitals Found</h3>
+                <p>No hospitals match your search criteria. Please try a different search term.</p>
+            </div>
+
+            <div class="table-container">
+                <table class="hospital-table">
+                    <thead>
+                        <tr>
+                            <th>Hospital Name</th>
+                            <th>Admin Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hospitalTableBody">
+                        {% for document in facility_documents %}
+                        <tr data-id="{{ document.facility.id }}" data-hospital="{{ document.facility.name }}">
+                            <td>{{ document.facility.name }}</td>
+                            <td>{{ document.facility.admin_first_name }} {{ document.facility.admin_last_name }}</td>
+                            <td class="actions">
+                                <a href="{% url 'download_hospital_credentials' document.facility.id %}" 
+                                   class="btn-download" 
+                                   title="Download Documents">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <a href="#" class="btn-delete" title="Delete" 
+                                   onclick="confirmDelete({{ document.facility.id }}, '{{ document.facility.name }}', event)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px;">No hospital documents found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if facility_documents.has_other_pages %}
+            <div class="pagination">
+                {% if facility_documents.has_previous %}
+                    <a href="?page=1">&laquo; First</a>
+                    <a href="?page={{ facility_documents.previous_page_number }}">Previous</a>
+                {% endif %}
+                
+                {% for num in facility_documents.paginator.page_range %}
+                    {% if facility_documents.number == num %}
+                        <a href="?page={{ num }}" class="active">{{ num }}</a>
+                    {% elif num > facility_documents.number|add:'-3' and num < facility_documents.number|add:'3' %}
+                        <a href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if facility_documents.has_next %}
+                    <a href="?page={{ facility_documents.next_page_number }}">Next</a>
+                    <a href="?page={{ facility_documents.paginator.num_pages }}">Last &raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+   <script>
+    // Toggle submenus
+    function toggleSubmenu(event) {
+        event.preventDefault();
+        const parentLi = event.target.closest('li');
+        parentLi.classList.toggle('active');
+        
+        document.querySelectorAll('.submenu').forEach(menu => {
+            if (menu !== parentLi) menu.classList.remove('active');
+        });
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+            document.querySelectorAll('.submenu').forEach(li => {
+                li.classList.remove('active');
+            });
+        }
+    });
+
+    // Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const hospitalTableBody = document.getElementById('hospitalTableBody');
+        const rows = hospitalTableBody.querySelectorAll('tr[data-id]');
+        
+        // Search button click handler
+        searchBtn.addEventListener('click', function() {
+            performSearch();
+        });
+        
+        // Clear button click handler
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resetSearch();
+        });
+        
+        // Search input enter key handler
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Toggle clear button visibility based on input
+        searchInput.addEventListener('input', function() {
+            clearSearchBtn.style.display = this.value ? 'block' : 'none';
+        });
+        
+        // Perform search function
+        function performSearch() {
+            const searchTerm = searchInput.value.trim().toUpperCase();
+            if (searchTerm === '') {
+                resetSearch();
+                return;
+            }
+            
+            let found = false;
+            rows.forEach(row => {
+                const hospitalName = row.getAttribute('data-hospital').toUpperCase();
+                
+                if (hospitalName.includes(searchTerm)) {
+                    row.style.display = '';
+                    found = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            noResultsMessage.style.display = found ? 'none' : 'block';
+        }
+        
+        // Reset search function
+        function resetSearch() {
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            noResultsMessage.style.display = 'none';
+            clearSearchBtn.style.display = 'none';
+        }
+    });
+
+    // Delete function with complete row removal
+    function confirmDelete(facilityId, facilityName, event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        if (confirm(`Delete documents for "${facilityName}"? This will permanently remove all associated documents.`)) {
+            const deleteBtn = event.target.closest('.btn-delete');
+            const row = document.querySelector(`tr[data-id="${facilityId}"]`);
+            
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            deleteBtn.disabled = true;
+
+            // --- THE CORRECTED FIX IS HERE ---
+            // The URL now correctly targets your new delete_facility_documents view
+            // with the '/manage_hospital/' prefix from your main urls.py.
+            fetch(`/manage_hospital/delete_facility_documents/${facilityId}/`, { // THIS IS THE MODIFIED LINE
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({}) // Send an empty JSON body
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Attempt to parse JSON error message if available from backend
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }).catch(() => {
+                        // Fallback to generic HTTP error if JSON parsing fails
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success' || data.status === 'info') { // Handle both 'success' and 'info' statuses from your view
+                    showToast(data.message);
+                    
+                    // Since only documents are deleted, not the facility itself,
+                    // you might consider if removing the entire row is the ideal UX.
+                    // If the row represents the facility and its documents, then removing it is fine.
+                    // If the row is just a display of documents, you might want to refresh only that part.
+                    if (row) {
+                        row.remove(); 
+                    }
+                    
+                    // Check if table is empty and show message
+                    const tableBody = document.querySelector('.hospital-table tbody');
+                    if (tableBody && tableBody.rows.length === 0) {
+                        const emptyRow = document.createElement('tr');
+                        emptyRow.innerHTML = '<td colspan="3" style="text-align: center; padding: 20px;">No hospital documents found</td>';
+                        tableBody.appendChild(emptyRow);
+                    }
+                    
+                } else {
+                    // Assuming data.message contains the error message from the Django view
+                    throw new Error(data.message || 'Failed to delete documents'); 
+                }
+            })
+            .catch(error => {
+                console.error('Delete error:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            })
+            .finally(() => {
+                if (deleteBtn) {
+                    deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    deleteBtn.disabled = false;
+                }
+            });
+        }
+    }
+
+    // Download handler (no changes needed)
+    document.querySelectorAll('.btn-download').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        // No need for preventDefault() since we're using a direct link
+        // The view will handle the file download
+    });
+});
+
+    // Toast notification function (no changes needed)
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
+    }
+</script>
+</body>
+</html>

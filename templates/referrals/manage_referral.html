@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Referrals</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Main Layout */
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgb(248, 248, 248);
+            box-shadow: 2px 0 5px rgba(251, 238, 238, 0.1);
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 999;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+            background: #fff;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Search bar styles - Updated */
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .search-input-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 15px 8px 35px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+        }
+
+        .search-btn, .clear-search-btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .search-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .clear-search-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .clear-search-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* No results message box */
+        .no-results-message {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .no-results-message i {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .no-results-message h3 {
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+
+        .no-results-message p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .back-btn, .add-btn {
+            border: 2px solid #3498db;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover, .add-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 0;
+        }
+
+        .referral-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1200px;
+        }
+
+        .referral-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .referral-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+
+        .referral-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .referral-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-view, .btn-edit, .btn-delete {
+            padding: 6px 8px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+        }
+
+        .btn-view {
+            background-color: #17a2b8;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .btn-view:hover {
+            background-color: #138496;
+        }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-requested {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-in-transit {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .status-completed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Priority Badges */
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-emergency {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .priority-urgent-care {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .priority-routine {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: modalopen 0.4s;
+        }
+
+        @keyframes modalopen {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #3498db;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+        }
+
+        .modal-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 30px;
+            margin-bottom: 25px;
+        }
+
+        .modal-row {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 calc(50% - 15px);
+            min-width: 280px;
+            padding-bottom: 0px;
+            border-bottom: none;
+        }
+
+        .modal-row.item-full-width {
+            flex: 1 1 100%;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .modal-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .modal-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            font-size: 0.95rem;
+        }
+
+        .modal-value {
+            color: #333;
+            flex: 1;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        .modal-value.block-content {
+            display: block;
+            margin-top: 5px;
+            padding: 10px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+
+        .modal-value.pre-formatted-content {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: border 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
+        }
+
+        .modal-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #555;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                z-index: 999;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-container {
+                max-width: 100%;
+                order: -1;
+            }
+
+            .back-btn, .add-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .referral-table td {
+                font-size: 0.85rem;
+            }
+
+            .btn-view, .btn-edit, .btn-delete {
+                width: 25px;
+                height: 25px;
+                padding: 4px 6px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                margin: 10% auto;
+            }
+
+            .modal-row {
+                flex-direction: column;
+                flex: 1 1 100%;
+                gap: 5px;
+            }
+
+            .modal-label {
+                min-width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+   <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu active">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Records</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1>Manage Referrals</h1>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <div class="search-input-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search by patient name or referral code...">
+                        </div>
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button class="clear-search-btn" id="clearSearchBtn">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                    <a href="{% url 'home' %}" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <a href="{% url 'add_referral' %}" class="add-btn">
+                        <i class="fas fa-plus"></i> Add Referral
+                    </a>
+                </div>
+            </div>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <!-- No results message box -->
+            <div class="no-results-message" id="noResultsMessage">
+                <i class="fas fa-search"></i>
+                <h3>No Referrals Found</h3>
+                <p>No referrals match your search criteria. Please try a different search term.</p>
+            </div>
+
+            <div class="table-container">
+                <table class="referral-table">
+                    <thead>
+                        <tr>
+                            <th>Patient Name</th>
+                            <th>Referring Hospital</th>
+                            <th>Referring Doctor</th>
+                            <th>Receiving Doctor</th>
+                            <th>Receiving Hospital</th>
+                            <th>Status</th>
+                            <th>Start Date/Time</th>
+                            <th>End Date/Time</th>
+                            <th>Main Reason</th>
+                            <th>Priority</th>
+                            <th>Referral Code</th>
+                            <th>Additional Notes</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="referralTableBody">
+                        {% for referral in referrals %}
+                        <tr data-id="{{ referral.id }}" data-patient="{{ referral.patient.full_name }}" data-code="{{ referral.referral_code }}">
+                            <td>{{ referral.patient.full_name|slice:":14" }}{% if referral.patient.full_name|length > 14 %}...{% endif %}</td>
+                            <td>{{ referral.referring_hospital.name|slice:":14" }}{% if referral.referring_hospital.name|length > 14 %}...{% endif %}</td>
+                            <td>Dr. {{ referral.referring_doctor.full_name|slice:":11" }}{% if referral.referring_doctor.full_name|length > 11 %}...{% endif %}</td>
+                            <td>Dr. {{ referral.receiving_doctor.full_name|slice:":11" }}{% if referral.receiving_doctor.full_name|length > 11 %}...{% endif %}</td>
+                            <td>{{ referral.receiving_hospital.name|slice:":14" }}{% if referral.receiving_hospital.name|length > 14 %}...{% endif %}</td>
+                            <td>
+                                <span class="status-badge status-{{ referral.status_css }}">{{ referral.status|slice:":14" }}{% if referral.status|length > 14 %}...{% endif %}</span>
+                            </td>
+                            <td>{{ referral.start_datetime|date:"Y-m-d H:i" }}</td>
+                            <td>{{ referral.end_datetime|date:"Y-m-d H:i"|default:"N/A" }}</td>
+                            <td>{{ referral.main_reason|slice:":14" }}{% if referral.main_reason|length > 14 %}...{% endif %}</td>
+                            <td>
+                                <span class="priority-badge priority-{{ referral.priority_css }}">{{ referral.priority|slice:":14" }}{% if referral.priority|length > 14 %}...{% endif %}</span>
+                            </td>
+                            <td>{{ referral.referral_code|slice:":14" }}{% if referral.referral_code|length > 14 %}...{% endif %}</td>
+                            <td>{{ referral.additional_notes|default:"N/A"|slice:":14" }}{% if referral.additional_notes|length > 14 %}...{% endif %}</td>
+                            <td>{{ referral.created_at|date:"Y-m-d H:i" }}</td>
+                            <td class="actions">
+                                <a href="javascript:void(0)" class="btn-view" title="View" onclick="openViewModal('{{ referral.id }}', event)">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="javascript:void(0)" class="btn-edit" title="Edit" onclick="openEditModal('{{ referral.id }}', event)">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="javascript:void(0)" class="btn-delete" title="Delete" onclick="confirmDelete('{{ referral.id }}', '{{ referral.patient.full_name }}', event)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="14">No referrals found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+        
+
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="closeModal('viewModal')">&times;</div>
+            <h2>View Referral Details</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="closeModal('editModal')">&times;</div>
+            <h2>Edit Referral</h2>
+            <form id="editForm">
+                <input type="hidden" id="referralId" name="referral_id">
+
+                <div class="form-group">
+                    <label for="editPatientDisplay">Patient:</label>
+                    <input type="text" id="editPatientDisplay" class="form-control" readonly>
+                    <input type="hidden" id="editPatient" name="patient">
+                </div>
+
+                <div class="form-group">
+                    <label for="editReferringHospitalDisplay">Referring Hospital:</label>
+                    <input type="text" id="editReferringHospitalDisplay" class="form-control" readonly>
+                    <input type="hidden" id="editReferringHospital" name="referring_hospital">
+                </div>
+
+                <div class="form-group">
+                    <label for="editReferringDoctorDisplay">Referring Doctor:</label>
+                    <input type="text" id="editReferringDoctorDisplay" class="form-control" readonly>
+                    <input type="hidden" id="editReferringDoctor" name="referring_doctor">
+                </div>
+
+                <div class="form-group">
+                    <label for="editReceivingHospitalDisplay">Receiving Hospital:</label>
+                    <input type="text" id="editReceivingHospitalDisplay" class="form-control" readonly>
+                    <input type="hidden" id="editReceivingHospital" name="receiving_hospital">
+                </div>
+
+                <div class="form-group">
+                    <label for="editReceivingDoctorDisplay">Receiving Doctor:</label>
+                    <input type="text" id="editReceivingDoctorDisplay" class="form-control" readonly>
+                    <input type="hidden" id="editReceivingDoctor" name="receiving_doctor">
+                </div>
+
+                <div class="form-group">
+                    <label for="editStatus">Status:</label>
+                    <select id="editStatus" name="status" class="form-control" required>
+                        <option value="Requested">Requested</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editStartDatetime">Start Date/Time:</label>
+                    <input type="datetime-local" id="editStartDatetime" name="start_datetime" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editEndDatetime">End Date/Time:</label>
+                    <input type="datetime-local" id="editEndDatetime" name="end_datetime" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="editMainReason">Main Reason:</label>
+                    <textarea id="editMainReason" name="main_reason" class="form-control" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPriority">Priority:</label>
+                    <select id="editPriority" name="priority" class="form-control" required>
+                        <option value="Emergency">Emergency</option>
+                        <option value="Urgent care">Urgent care</option>
+                        <option value="Routine">Routine</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editReferralCode">Referral Code:</label>
+                    <input type="text" id="editReferralCode" name="referral_code" class="form-control" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="editAdditionalNotes">Additional Notes:</label>
+                    <textarea id="editAdditionalNotes" name="additional_notes" class="form-control"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    // This will be parsed by Django as JSON and then assigned to JavaScript
+    const referrals = JSON.parse('{{ referrals_json|escapejs }}');
+
+    // Initialize search functionality when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const referralTableBody = document.getElementById('referralTableBody');
+        const rows = referralTableBody.querySelectorAll('tr[data-id]');
+        
+        // Search button click handler
+        searchBtn.addEventListener('click', function() {
+            performSearch();
+        });
+        
+        // Clear button click handler
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resetSearch();
+        });
+        
+        // Search input enter key handler
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Toggle clear button visibility based on input
+        searchInput.addEventListener('input', function() {
+            clearSearchBtn.style.display = this.value ? 'block' : 'none';
+        });
+        
+        // Perform search function
+        function performSearch() {
+            const searchTerm = searchInput.value.trim().toUpperCase();
+            if (searchTerm === '') {
+                resetSearch();
+                return;
+            }
+            
+            let found = false;
+            rows.forEach(row => {
+                const patientName = row.getAttribute('data-patient').toUpperCase();
+                const referralCode = row.getAttribute('data-code').toUpperCase();
+                
+                if (patientName.includes(searchTerm) || referralCode.includes(searchTerm)) {
+                    row.style.display = '';
+                    found = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            noResultsMessage.style.display = found ? 'none' : 'block';
+        }
+        
+        // Reset search function
+        function resetSearch() {
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            noResultsMessage.style.display = 'none';
+            clearSearchBtn.style.display = 'none';
+        }
+
+        // Table hover effect
+        const table = document.querySelector('.referral-table');
+        table.addEventListener('mouseover', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '#e6f7ff';
+            }
+        });
+        table.addEventListener('mouseout', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '';
+            }
+        });
+
+        // Dropdown / Submenu Logic (keep existing as it's separate from modal logic)
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+
+                parentLi.classList.toggle('active');
+
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    });
+
+    // Function to open view modal with referral details
+    function openViewModal(referralId, event) {
+        event.preventDefault();
+        // Find the referral data from the global 'referrals' array
+        const referral = referrals.find(r => r.id === referralId);
+
+        if (!referral) {
+            console.error('Referral not found:', referralId);
+            alert('Referral details could not be loaded.');
+            return;
+        }
+
+        // Create the modal content
+        const modalContent = `
+            <div class="modal-section">
+                <div class="modal-row">
+                    <span class="modal-label">Patient Name:</span>
+                    <span class="modal-value">${referral.patient.full_name}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Referring Hospital:</span>
+                    <span class="modal-value">${referral.referring_hospital.name}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Referring Doctor:</span>
+                    <span class="modal-value">Dr. ${referral.referring_doctor.full_name}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Receiving Hospital:</span>
+                    <span class="modal-value">${referral.receiving_hospital.name}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Receiving Doctor:</span>
+                    <span class="modal-value">Dr. ${referral.receiving_doctor.full_name}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Status:</span>
+                    <span class="modal-value">
+                        <span class="status-badge status-${referral.status_css}">
+                            ${referral.status}
+                        </span>
+                    </span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Start Date/Time:</span>
+                    <span class="modal-value">${referral.start_datetime.replace('T', ' ')}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">End Date/Time:</span>
+                    <span class="modal-value">${referral.end_datetime ? referral.end_datetime.replace('T', ' ') : 'N/A'}</span>
+                </div>
+                <div class="modal-row item-full-width">
+                    <span class="modal-label">Main Reason:</span>
+                    <pre class="modal-value block-content pre-formatted-content">${referral.main_reason}</pre>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Priority:</span>
+                    <span class="modal-value">
+                        <span class="priority-badge priority-${referral.priority_css}">
+                            ${referral.priority}
+                        </span>
+                    </span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Referral Code:</span>
+                    <span class="modal-value">${referral.referral_code}</span>
+                </div>
+                <div class="modal-row item-full-width">
+                    <span class="modal-label">Additional Notes:</span>
+                    <pre class="modal-value block-content pre-formatted-content">${referral.additional_notes || 'N/A'}</pre>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Created At:</span>
+                    <span class="modal-value">${referral.created_at.replace('T', ' ')}</span>
+                </div>
+            </div>
+        `;
+
+        // Update modal content and show it
+        document.getElementById('modalContent').innerHTML = modalContent;
+        document.getElementById('viewModal').style.display = 'block';
+    }
+
+            document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality for sidebar items (toggle sub-menus)
+            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+            dropdownTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior for dropdowns
+
+                    const parentLi = this.closest('li');
+
+                    // Toggle 'active' class on the clicked submenu
+                    parentLi.classList.toggle('active');
+
+                    // Close other open submenus
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== parentLi) { // If it's not the clicked submenu
+                            menu.classList.remove('active'); // Close it
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                // Check if the click is outside any .submenu or inside a .sub-menu itself
+                // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
+                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                    document.querySelectorAll('.submenu').forEach(li => {
+                        li.classList.remove('active');
+                    });
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside its sub-menu
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
+                });
+            });
+        });
+
+    // Function to open edit modal with referral details
+    function openEditModal(referralId, event) {
+        event.preventDefault();
+        // Find the referral data
+        const referral = referrals.find(r => r.id === referralId);
+
+        if (!referral) {
+            console.error('Referral not found for editing:', referralId);
+            alert('Referral details could not be loaded for editing.');
+            return;
+        }
+
+
+        // Set the hidden referral ID
+        document.getElementById('referralId').value = referral.id;
+
+        // Populate the non-editable display fields
+        document.getElementById('editPatientDisplay').value = referral.patient.full_name;
+        document.getElementById('editReferringHospitalDisplay').value = referral.referring_hospital.name;
+        document.getElementById('editReferringDoctorDisplay').value = `Dr. ${referral.referring_doctor.full_name}`;
+        document.getElementById('editReceivingHospitalDisplay').value = referral.receiving_hospital.name;
+        document.getElementById('editReceivingDoctorDisplay').value = `Dr. ${referral.receiving_doctor.full_name}`;
+
+        // Populate the hidden input fields with IDs for backend submission
+        document.getElementById('editPatient').value = referral.patient.id;
+        document.getElementById('editReferringHospital').value = referral.referring_hospital.id;
+        document.getElementById('editReferringDoctor').value = referral.referring_doctor.id;
+        document.getElementById('editReceivingHospital').value = referral.receiving_hospital.id;
+        document.getElementById('editReceivingDoctor').value = referral.receiving_doctor.id;
+
+        // Populate editable fields
+        document.getElementById('editStatus').value = referral.status;
+        document.getElementById('editStartDatetime').value = referral.start_datetime ? referral.start_datetime.substring(0, 16) : '';
+        document.getElementById('editEndDatetime').value = referral.end_datetime ? referral.end_datetime.substring(0, 16) : '';
+        document.getElementById('editMainReason').value = referral.main_reason;
+        document.getElementById('editPriority').value = referral.priority;
+        document.getElementById('editReferralCode').value = referral.referral_code;
+        document.getElementById('editAdditionalNotes').value = referral.additional_notes || '';
+
+        // Show the modal
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    // Function to close modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Handle edit form submission (AJAX POST to update)
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const referralId = document.getElementById('referralId').value;
+        const formData = new FormData(this); // Collects all form data, including hidden inputs
+
+        // **IMPORTANT:** Adjust this URL to match your Django setup's update endpoint.
+        // It should typically be something like /your-app-name/referrals/<uuid:pk>/update/
+        // or just /your-app-name/referrals/<uuid:pk>/ if your view handles PUT/PATCH requests.
+        const url = `/referrals/${referralId}/update/`; // Example URL
+
+        fetch(url, {
+            method: 'POST', // Or 'PUT'/'PATCH' if your Django view is configured for that
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken') // Get CSRF token
+            },
+            body: formData // Send as FormData for regular form submission handling in Django
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Handle HTTP errors (e.g., 400 Bad Request, 500 Internal Server Error)
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Referral updated successfully!');
+                closeModal('editModal');
+                location.reload(); // Simple reload to see changes. Consider dynamic update for better UX.
+            } else {
+                // Display specific errors from backend if any
+                alert('Error updating referral: ' + (data.error || 'Unknown error.'));
+                console.error('Backend error:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error during update fetch:', error);
+            alert('Network or server error during update: ' + error.message);
+        });
+    });
+
+    // Function to confirm deletion (AJAX POST/DELETE to delete)
+function confirmDelete(referralId, patientName, event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (confirm(`Are you sure you want to delete the referral for "${patientName}"? This action cannot be undone.`)) {
+        // This URL is correct assuming your Django URLConf is set up as described above
+        const url = `/referrals/${referralId}/delete/`;
+
+        fetch(url, {
+            method: 'POST', // This must match the method expected by your Django view
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken') // Always send CSRF token for POST requests
+            }
+        })
+        .then(response => {
+            // Check if the HTTP response status is successful (200-299 range)
+            if (!response.ok) {
+                // If not successful, try to parse JSON error from the response
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }).catch(() => {
+                    // If JSON parsing fails (e.g., server returned HTML for an error),
+                    // provide a generic error message
+                    throw new Error(`HTTP error! Status: ${response.status} - Server responded with non-JSON.`);
+                });
+            }
+            // If response is OK, parse it as JSON
+            return response.json();
+        })
+        .then(data => {
+            // Check if the JSON response indicates success
+            if (data.success) {
+                alert('Referral deleted successfully!');
+                // Remove the table row from the DOM directly for immediate visual feedback
+                const rowToDelete = event.target.closest('tr');
+                if (rowToDelete) {
+                    rowToDelete.remove();
+                }
+            } else {
+                // Display error message from the JSON response
+                alert('Error deleting referral: ' + (data.error || 'Unknown error.'));
+                console.error('Backend error:', data.error);
+            }
+        })
+        .catch(error => {
+            // Catch network errors or errors thrown during response processing
+            console.error('Error during delete fetch:', error);
+            alert('Network or server error during deletion: ' + error.message);
+        });
+    }
+}
+
+    // Helper to get CSRF token (needed for AJAX POST requests in Django)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Table hover effect
+        const table = document.querySelector('.referral-table');
+        table.addEventListener('mouseover', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '#e6f7ff';
+            }
+        });
+        table.addEventListener('mouseout', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '';
+            }
+        });
+
+        // Dropdown / Submenu Logic (keep existing as it's separate from modal logic)
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+
+                parentLi.classList.toggle('active');
+
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    });
+</script>
+</body>
+</html>

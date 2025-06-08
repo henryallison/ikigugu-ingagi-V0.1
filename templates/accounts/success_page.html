@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Successful | Rwanda Health Connect</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .success-message {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            animation: gentleFloat 6s ease-in-out infinite;
+            transform-origin: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-2px, -2px) rotate(-0.5deg); }
+            50% { transform: translate(2px, 2px) rotate(0.5deg); }
+            75% { transform: translate(2px, -2px) rotate(-0.5deg); }
+        }
+
+        .success-icon {
+            color: #2ecc71;
+            font-size: 80px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 4px 8px rgba(46, 204, 113, 0.3));
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        p {
+            color: #7f8c8d;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .btn-return {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin-top: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-return:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-return i {
+            margin-right: 8px;
+        }
+
+        .countdown {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #95a5a6;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f39c12;
+            opacity: 0;
+        }
+
+        @media (max-width: 768px) {
+            .success-message {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 26px;
+            }
+            
+            p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo" style="
+    position: fixed;  /* Changed from absolute to fixed */
+    top: 0;
+    left: 0;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.4rem;
+    z-index: 1000;  /* Ensures it stays on top of other elements */
+    color: #fff;">
+    <a href="#" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 80px; height: 80px; margin-right: 12px; border-radius: 50%;">
+    </a>
+</div>
+
+    <div class="success-message">
+        <i class="fas fa-check-circle success-icon"></i>
+<h1>Documents Submitted Successfully!</h1>
+<p>Dear <span class="highlight">{{ admin_first_name }} {{ admin_last_name }}</span>, your registration documents have been received.</p>
+<p>Our team will review them and contact you within 3-5 business days.</p>
+<p>Thank you for choosing Rwanda Health Connect!</p>
+        
+        <a href="{% url 'accounts:login' %}" class="btn-return">
+            <i class="fas fa-sign-in-alt"></i> Return to Login
+        </a>
+        
+        <div class="countdown" id="countdown">
+            This message will disappear in <span id="timer">60</span> seconds
+        </div>
+    </div>
+
+    <script>
+        // Countdown timer
+        let seconds = 60;
+        const timerElement = document.getElementById('timer');
+        
+        const countdown = setInterval(() => {
+            seconds--;
+            timerElement.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(countdown);
+                window.location.href = "{% url 'accounts:login' %}";
+            }
+        }, 1000);
+
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'];
+            const confettiContainer = document.body;
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                confetti.style.opacity = Math.random();
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                const animationDuration = Math.random() * 3 + 2;
+                confetti.style.animation = `fall ${animationDuration}s linear forwards`;
+                
+                confettiContainer.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, animationDuration * 1000);
+            }
+        }
+
+        // Add confetti animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Trigger confetti on load
+        window.addEventListener('load', () => {
+            createConfetti();
+            setTimeout(createConfetti, 1000);
+        });
+    </script>
+</body>
+</html>

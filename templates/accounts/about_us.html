@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Rwanda Health Connect</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #6dd5ed, #2193b0); /* Light blue gradient */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            position: relative; /* For the button positioning */
+        }
+
+        h1 {
+            color: #0d47a1; /* Dark blue for heading */
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .return-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 25px;
+            background: #3498db; /* Blue button */
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.2s ease;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .return-btn i {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+
+        .return-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            .return-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="logo" style="
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.4rem; /* Increased text size */
+    color: #fff;">
+    <a href="#" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 80px; height: 80px; margin-right: 12px; border-radius: 50%;">
+      
+    </a>
+</div>
+
+
+    
+    <div class="container">
+        <h1>About Rwanda Health Connect</h1>
+        <p>Rwanda Health Connect is a pioneering digital platform dedicated to transforming healthcare delivery across Rwanda. Our mission is to streamline patient referrals, manage hospital operations, and ensure seamless communication within the healthcare ecosystem.</p>
+        <p>We empower healthcare providers with intuitive tools to manage patient records, track referrals efficiently, and optimize resource allocation. For patients, we aim to provide transparent access to healthcare services, reducing wait times and improving the overall patient journey.</p>
+        <p>Built with a commitment to innovation and security, Rwanda Health Connect is designed to enhance collaboration, improve patient outcomes, and contribute to a healthier Rwanda.</p>
+        <a href="{% url 'accounts:login' %}" class="return-btn">
+            <i class="fas fa-sign-in-alt"></i> Return to Login
+        </a>
+    </div>
+</body>
+</html>

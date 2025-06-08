@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Patient</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Container Styles */
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: rgb(248, 248, 248);
+            transition: all 0.3s;
+            position: fixed;
+            height: 100%;
+            box-shadow: 2px 0 5px rgba(251, 238, 238, 0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+            background: #fff;
+            min-height: 100vh;
+        }
+        
+        /* Page Header Styles */
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .back-btn, .submit-btn {
+            border: 2px solid #3498db;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover, .submit-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* Form Styles */
+        .patient-form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 1em;
+            padding-right: 35px;
+        }
+        
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-reset {
+            background-color: #ec0616;
+            color: #fff;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-reset:hover {
+            background-color:  #d00f1b;
+        }
+        
+        .btn-cancel {
+            background-color: #02d310;
+            color: #fff;
+            border: 1px solid #ddd;
+            text-decoration: none;
+        }
+        
+        .btn-cancel:hover {
+            background-color:  #05ce13;;
+        }
+        
+        .btn-submit {
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
+        
+        .btn-submit:hover {
+            background-color: #2980b9;
+        }
+        
+        /* Image Upload */
+        .image-upload {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .image-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px dashed #ddd;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-preview span {
+            color: #777;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+           <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu active">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+<div class="main-content">
+    <div class="page-header">
+        <h1>Add New Patient</h1>
+        <div class="header-actions">
+            <a href="{% url 'patients:manage_patients' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    {# Display Django messages #}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {# Display form errors if any (from server-side validation) #}
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Please correct the following error(s):</strong>
+            <ul>
+        {# Display non-field errors first #}
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        {% endif %}
+
+        {# Display field-specific errors #}
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+        </div>
+    {% endif %}
+
+    <form class="patient-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="full_name">Full Name *</label>
+                <input type="text" id="full_name" name="full_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth *</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="current_address">Current Address *</label>
+                <input type="text" id="current_address" name="current_address" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="phone_number">Phone Number (e.g., +25078xxxxxxx) *</label> {# MODIFIED LABEL #}
+                <input type="tel" id="phone_number" name="phone_number" class="form-control"
+                       pattern="^\+2507[89][0-9]{7}$" {# MODIFIED PATTERN for +2507 only #}
+                       title="Rwandan phone number must start with +25078 or +25079, followed by 7 digits (e.g., +250781234567)" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="emergency_contact">Emergency Contact (e.g., +25078xxxxxxx) *</label> {# MODIFIED LABEL #}
+                <input type="tel" id="emergency_contact" name="emergency_contact_number" class="form-control"
+                       pattern="^\+2507[89][0-9]{7}$" {# MODIFIED PATTERN for +2507 only #}
+                       title="Emergency contact number must start with +25078 or +25079, followed by 7 digits (e.g., +250781234567)" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="gender">Gender *</label>
+                <select id="gender" name="gender" class="form-control" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="nationality">Nationality *</label>
+                <select id="nationality" name="nationality" class="form-control" required>
+                    <option value="">Select Nationality</option>
+                    {# ... (your nationality options) ... #}
+                    <option value="Afghan">Afghan</option>
+                    <option value="Albanian">Albanian</option>
+                    <option value="Algerian">Algerian</option>
+                    <option value="Andorran">Andorran</option>
+                    <option value="Angolan">Angolan</option>
+                    <option value="Antiguan and Barbudan">Antiguan and Barbudan</option>
+                    <option value="Argentine">Argentine</option>
+                    <option value="Armenian">Armenian</option>
+                    <option value="Australian">Australian</option>
+                    <option value="Austrian">Austrian</option>
+                    <option value="Azerbaijani">Azerbaijani</option>
+                    <option value="Bahamian">Bahamian</option>
+                    <option value="Bahraini">Bahraini</option>
+                    <option value="Bangladeshi">Bangladeshi</option>
+                    <option value="Barbadian">Barbadian</option>
+                    <option value="Belarusian">Belarusian</option>
+                    <option value="Belgian">Belgian</option>
+                    <option value="Belizean">Belizean</option>
+                    <option value="Beninese">Beninese</option>
+                    <option value="Bhutanese">Bhutanese</option>
+                    <option value="Bolivian">Bolivian</option>
+                    <option value="Bosnian and Herzegovinian">Bosnian and Herzegovinian</option>
+                    <option value="Botswanan">Botswanan</option>
+                    <option value="Brazilian">Brazilian</option>
+                    <option value="Bruneian">Bruneian</option>
+                    <option value="Bulgarian">Bulgarian</option>
+                    <option value="Burkinabé">Burkinabé</option>
+                    <option value="Burundian">Burundian</option>
+                    <option value="Cabo Verdean">Cabo Verdean</option>
+                    <option value="Cambodian">Cambodian</option>
+                    <option value="Cameroonian">Cameroonian</option>
+                    <option value="Canadian">Canadian</option>
+                    <option value="Central African">Central African</option>
+                    <option value="Chadian">Chadian</option>
+                    <option value="Chilean">Chilean</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Colombian">Colombian</option>
+                    <option value="Comoran">Comoran</option>
+                    <option value="Congolese (Congo-Brazzaville)">Congolese (Congo-Brazzaville)</option>
+                    <option value="Congolese (Congo-Kinshasa)">Congolese (Congo-Kinshasa)</option>
+                    <option value="Costa Rican">Costa Rican</option>
+                    <option value="Croatian">Croatian</option>
+                    <option value="Cuban">Cuban</option>
+                    <option value="Cypriot">Cypriot</option>
+                    <option value="Czech">Czech</option>
+                    <option value="Danish">Danish</option>
+                    <option value="Djiboutian">Djiboutian</option>
+                    <option value="Dominican">Dominican</option>
+                    <option value="Dominican (Republic)">Dominican (Republic)</option>
+                    <option value="East Timorese">East Timorese</option>
+                    <option value="Ecuadorean">Ecuadorean</option>
+                    <option value="Egyptian">Egyptian</option>
+                    <option value="Salvadoran">Salvadoran</option>
+                    <option value="Equatorial Guinean">Equatorial Guinean</option>
+                    <option value="Eritrean">Eritrean</option>
+                    <option value="Estonian">Estonian</option>
+                    <option value="Eswatini">Eswatini</option>
+                    <option value="Ethiopian">Ethiopian</option>
+                    <option value="Fijian">Fijian</option>
+                    <option value="Finnish">Finnish</option>
+                    <option value="French">French</option>
+                    <option value="Gabonese">Gabonese</option>
+                    <option value="Gambian">Gambian</option>
+                    <option value="Georgian">Georgian</option>
+                    <option value="German">German</option>
+                    <option value="Ghanaian">Ghanaian</option>
+                    <option value="Greek">Greek</option>
+                    <option value="Grenadian">Grenadian</option>
+                    <option value="Guatemalan">Guatemalan</option>
+                    <option value="Guinean">Guinean</option>
+                    <option value="Guinea-Bissau">Guinea-Bissau</option>
+                    <option value="Guyanese">Guyanese</option>
+                    <option value="Haitian">Haitian</option>
+                    <option value="Holy See (Vatican City) Citizen">Holy See (Vatican City) Citizen</option>
+                    <option value="Honduran">Honduran</option>
+                    <option value="Hungarian">Hungarian</option>
+                    <option value="Icelandic">Icelandic</option>
+                    <option value="Indian">Indian</option>
+                    <option value="Indonesian">Indonesian</option>
+                    <option value="Iranian">Iranian</option>
+                    <option value="Iraqi">Iraqi</option>
+                    <option value="Irish">Irish</option>
+                    <option value="Israeli">Israeli</option>
+                    <option value="Italian">Italian</option>
+                    <option value="Ivorian">Ivorian</option>
+                    <option value="Jamaican">Jamaican</option>
+                    <option value="Japanese">Japanese</option>
+                    <option value="Jordanian">Jordanian</option>
+                    <option value="Kazakhstani">Kazakhstani</option>
+                    <option value="Kenyan">Kenyan</option>
+                    <option value="Kiribati">Kiribati</option>
+                    <option value="North Korean">North Korean</option>
+                    <option value="South Korean">South Korean</option>
+                    <option value="Kuwaiti">Kuwaiti</option>
+                    <option value="Kyrgyzstani">Kyrgyzstani</option>
+                    <option value="Lao">Lao</option>
+                    <option value="Latvian">Latvian</option>
+                    <option value="Lebanese">Lebanese</option>
+                    <option value="Lesotho">Lesotho</option>
+                    <option value="Liberian">Liberian</option>
+                    <option value="Libyan">Libyan</option>
+                    <option value="Liechtenstein">Liechtenstein</option>
+                    <option value="Lithuanian">Lithuanian</option>
+                    <option value="Luxembourgish">Luxembourgish</option>
+                    <option value="Madagascan">Madagascan</option>
+                    <option value="Malawian">Malawian</option>
+                    <option value="Malaysian">Malaysian</option>
+                    <option value="Maldivian">Maldivian</option>
+                    <option value="Malian">Malian</option>
+                    <option value="Maltese">Maltese</option>
+                    <option value="Marshallese">Marshallese</option>
+                    <option value="Mauritanian">Mauritanian</option>
+                    <option value="Mauritian">Mauritian</option>
+                    <option value="Mexican">Mexican</option>
+                    <option value="Micronesian">Micronesian</option>
+                    <option value="Moldovan">Moldovan</option>
+                    <option value="Monacan">Monacan</option>
+                    <option value="Mongolian">Mongolian</option>
+                    <option value="Montenegrin">Montenegrin</option>
+                    <option value="Moroccan">Moroccan</option>
+                    <option value="Mozambican">Mozambican</option>
+                    <option value="Myanmar (Burmese)">Myanmar (Burmese)</option>
+                    <option value="Namibian">Namibian</option>
+                    <option value="Nauruan">Nauruan</option>
+                    <option value="Nepalese">Nepalese</option>
+                    <option value="Dutch">Dutch</option>
+                    <option value="New Zealander">New Zealander</option>
+                    <option value="Nicaraguan">Nicaraguan</option>
+                    <option value="Nigerien">Nigerien</option>
+                    <option value="Nigerian">Nigerian</option>
+                    <option value="North Macedonian">North Macedonian</option>
+                    <option value="Norwegian">Norwegian</option>
+                    <option value="Omani">Omani</option>
+                    <option value="Pakistani">Pakistani</option>
+                    <option value="Palauan">Palauan</option>
+                    <option value="Palestinian">Palestinian</option>
+                    <option value="Panamanian">Panamanian</option>
+                    <option value="Papua New Guinean">Papua New Guinean</option>
+                    <option value="Paraguayan">Paraguayan</option>
+                    <option value="Peruvian">Peruvian</option>
+                    <option value="Philippine">Philippine</option>
+                    <option value="Polish">Polish</option>
+                    <option value="Portuguese">Portuguese</option>
+                    <option value="Qatari">Qatari</option>
+                    <option value="Romanian">Romanian</option>
+                    <option value="Russian">Russian</option>
+                    <option value="Rwandan">Rwandan</option>
+                    <option value="Kittitian and Nevisian">Kittitian and Nevisian</option>
+                    <option value="Saint Lucian">Saint Lucian</option>
+                    <option value="Saint Vincentian and Grenadine">Saint Vincentian and Grenadine</option>
+                    <option value="Samoan">Samoan</option>
+                    <option value="San Marino">San Marino</option>
+                    <option value="Sao Tomean">Sao Tomean</option>
+                    <option value="Saudi Arabian">Saudi Arabian</option>
+                    <option value="Senegalese">Senegalese</option>
+                    <option value="Serbian">Serbian</option>
+                    <option value="Seychellois">Seychellois</option>
+                    <option value="Sierra Leonean">Sierra Leonean</option>
+                    <option value="Singaporean">Singaporean</option>
+                    <option value="Slovak">Slovak</option>
+                    <option value="Slovenian">Slovenian</option>
+                    <option value="Solomon Islander">Solomon Islander</option>
+                    <option value="Somali">Somali</option>
+                    <option value="South African">South African</option>
+                    <option value="South Sudanese">South Sudanese</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="Sri Lankan">Sri Lankan</option>
+                    <option value="Sudanese">Sudanese</option>
+                    <option value="Surinamese">Surinamese</option>
+                    <option value="Swedish">Swedish</option>
+                    <option value="Swiss">Swiss</option>
+                    <option value="Syrian">Syrian</option>
+                    <option value="Taiwanese">Taiwanese</option>
+                    <option value="Tajikistani">Tajikistani</option>
+                    <option value="Tanzanian">Tanzanian</option>
+                    <option value="Thai">Thai</option>
+                    <option value="Togolese">Togolese</option>
+                    <option value="Tongan">Tongan</option>
+                    <option value="Trinidadian and Tobagonian">Trinidadian and Tobagonian</option>
+                    <option value="Tunisian">Tunisian</option>
+                    <option value="Turkish">Turkish</option>
+                    <option value="Turkmen">Turkmen</option>
+                    <option value="Tuvaluan">Tuvaluan</option>
+                    <option value="Ugandan">Ugandan</option>
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="Emirati">Emirati</option>
+                    <option value="British">British</option>
+                    <option value="American">American</option>
+                    <option value="Uruguayan">Uruguayan</option>
+                    <option value="Uzbekistani">Uzbekistani</option>
+                    <option value="Vanuatu">Vanuatu</option>
+                    <option value="Venezuelan">Venezuelan</option>
+                    <option value="Vietnamese">Vietnamese</option>
+                    <option value="Yemeni">Yemeni</option>
+                    <option value="Zambian">Zambian</option>
+                    <option value="Zimbabwean">Zimbabwean</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="marital_status">Marital Status *</label>
+                <select id="marital_status" name="marital_status" class="form-control" required>
+                    <option value="">Select Marital Status</option>
+                    <option value="Single">Single</option>
+                    <option value="Married">Married</option>
+                    <option value="Divorced">Divorced</option>
+                    <option value="Widowed">Widowed</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="occupation">Occupation *</label>
+                <input type="text" id="occupation" name="occupation" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="current_status">Current Status *</label>
+                <select id="current_status" name="current_status" class="form-control" required>
+                    <option value="">Select Status</option>
+                    <option value="Admitted">Admitted</option>
+                    <option value="Discharged">Discharged</option>
+                    <option value="In-transit">In-transit</option>
+                    <option value="Outpatient">Outpatient</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="current_hospital">Current Hospital *</label>
+                <select id="current_hospital" name="current_hospital" class="form-control" required>
+                    <option value="">Select Hospital</option>
+                    {% for hospital in approved_hospitals %}
+                        <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="blood_group">Blood Group *</label>
+                <select id="blood_group" name="blood_group" class="form-control" required>
+                    <option value="">Select Blood Group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="genotype">Genotype *</label>
+                <select id="genotype" name="genotype" class="form-control" required>
+                    <option value="">Select Genotype</option>
+                    <option value="AA">AA</option>
+                    <option value="AS">AS</option>
+                    <option value="SS">SS</option>
+                    <option value="AC">AC</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="patient_image">Patient Image *</label> {# MODIFIED LABEL #}
+            <div class="image-upload">
+                <div class="image-preview" id="imagePreview">
+                    <span>No image selected</span>
+                </div>
+                <input type="file" id="patient_image" name="image" accept="image/*" onchange="previewImage(this)" required> {# MODIFIED: Added required #}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="reset" class="btn btn-reset">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <a href="{% url 'patients:manage_patients' %}" class="btn btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-submit">
+                <i class="fas fa-plus"></i> Add Patient
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+/* Pop-up Container */
+.popup-container {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+    backdrop-filter: blur(5px); /* Optional: blur background */
+    z-index: 1000; /* Ensure it's on top */
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.popup-container.show {
+    display: flex; /* Flex to center content */
+    opacity: 1;
+}
+
+/* Pop-up Content */
+.popup-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transform: scale(0.8); /* Start smaller for animation */
+    transition: transform 0.3s ease-in-out;
+    max-width: 400px;
+    width: 90%;
+}
+
+.popup-container.show .popup-content {
+    transform: scale(1); /* Scale to full size */
+}
+
+.popup-content h3 {
+    color: #28a745; /* Success green */
+    margin-bottom: 15px;
+    font-size: 1.8em;
+}
+
+.popup-content p {
+    color: #333;
+    font-size: 1.1em;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.popup-content .close-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.popup-content .close-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Optional: Icon for success. Make sure you have Font Awesome linked in your <head> */
+.popup-content .icon {
+    font-size: 3em;
+    color: #28a745;
+    margin-bottom: 15px;
+}
+</style>
+
+<div id="successPopup" class="popup-container">
+    <div class="popup-content">
+        <div class="icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 id="popupTitle">Success!</h3>
+        <p id="popupMessage"></p>
+        <button class="close-btn" onclick="hidePopup()">Close</button>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        const preview = document.getElementById('imagePreview');
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = function() {
+            preview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = reader.result;
+            preview.appendChild(img);
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = '<span>No image selected</span>';
+        }
+    }
+
+    // Function to show the custom pop-up
+    function showPopup(message) {
+        const popup = document.getElementById('successPopup');
+        const popupMessage = document.getElementById('popupMessage');
+        popupMessage.textContent = message;
+        popup.classList.add('show');
+    }
+
+    // Function to hide the custom pop-up
+    function hidePopup() {
+        const popup = document.getElementById('successPopup');
+        popup.classList.remove('show');
+    }
+
+    // Dropdown / Submenu Logic (kept as is)
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+
+                parentLi.classList.toggle('active');
+
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+
+        // Set today's date as max for date of birth
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date_of_birth').setAttribute('max', today);
+
+        // --- NEW: Check for Django messages and display in pop-up ---
+        // This block executes when the page loads, checking if there are messages
+        // from the previous request (after a redirect).
+        {% if messages %}
+            {% for message in messages %}
+                {% if "success" in message.tags or "info" in message.tags %} {# Check for success or info messages #}
+                    showPopup("{{ message|escapejs }}");
+                {% else %}
+                    // For error messages, we can still use the traditional alert or
+                    // a dedicated error pop-up. For now, we'll just alert for errors.
+                    alert("{{ message|escapejs }}");
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        // --- END NEW ---
+    });
+
+    // Form validation (kept as is for client-side, it uses alert for errors)
+    document.querySelector('.patient-form').addEventListener('submit', function(e) {
+        const requiredFields = this.querySelectorAll('[required]');
+        let isValid = true;
+        let errorMessage = '';
+
+        // 1. Check all required fields for emptiness
+        requiredFields.forEach(field => {
+            // Special handling for file input, as .value is different
+            if (field.type === 'file') {
+                if (!field.files.length) {
+                    field.style.borderColor = '#dc3545';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            } else if (!field.value.trim()) { // Checks if the field value is empty or just whitespace
+                field.style.borderColor = '#dc3545'; // Changes border to red
+                isValid = false;
+            } else {
+                field.style.borderColor = '#ddd'; // Resets border color
+            }
+        });
+
+        if (!isValid) {
+            errorMessage += 'Please fill in all required fields marked with *.\n';
+        }
+
+        // 2. Validate Rwandan phone number format
+        const phoneNumber = document.getElementById('phone_number');
+        const emergencyContact = document.getElementById('emergency_contact');
+        const rwandaPhonePattern = /^\+2507[89][0-9]{7}$/; // Regex for +25078/9XXXXXXXX
+
+        if (phoneNumber.value.trim() && !rwandaPhonePattern.test(phoneNumber.value.trim())) {
+            phoneNumber.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Patient Phone Number must be in Rwandan format (e.g., +250781234567).\n';
+        } else {
+            phoneNumber.style.borderColor = '#ddd';
+        }
+
+        if (emergencyContact.value.trim() && !rwandaPhonePattern.test(emergencyContact.value.trim())) {
+            emergencyContact.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Emergency Contact Number must be in Rwandan format (e.g., +250781234567).\n';
+        } else {
+            emergencyContact.style.borderColor = '#ddd';
+        }
+
+        // 3. Emergency contact and phone number should not match
+        if (phoneNumber.value.trim() && emergencyContact.value.trim() && phoneNumber.value.trim() === emergencyContact.value.trim()) {
+            phoneNumber.style.borderColor = '#dc3545';
+            emergencyContact.style.borderColor = '#dc3545';
+            isValid = false;
+            errorMessage += 'Emergency Contact Number cannot be the same as the Patient Phone Number.\n';
+        } else {
+             // Reset only if they previously matched and are now different (important for re-validation)
+            if (phoneNumber.value.trim() !== '' && phoneNumber.style.borderColor === 'rgb(220, 53, 69)') {
+                phoneNumber.style.borderColor = '#ddd';
+            }
+            if (emergencyContact.value.trim() !== '' && emergencyContact.style.borderColor === 'rgb(220, 53, 69)') {
+                emergencyContact.style.borderColor = '#ddd';
+            }
+        }
+
+
+        if (!isValid) {
+            e.preventDefault(); // Prevents form submission
+            alert(errorMessage); // Shows all collected error messages
+        }
+    });
+</script>
+</body>
+</html>

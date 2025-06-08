@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hospital Inventory Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Hospital Inventory Details</h2>
+        <a href="{% url 'manage_hospital_inventory' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Inventory Details</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Hospital Information</h5>
+                    <p><strong>Hospital:</strong> {{ inventory.hospital.name }}</p>
+                    <p><strong>Created At:</strong> {{ inventory.created_at|date:"Y-m-d H:i:s" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Inventory List</h5>
+                    <div class="inventory-content">
+                        {{ inventory.inventory_list|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{% url 'update_hospital_inventory' inventory.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Inventory
+            </a>
+            <a href="{% url 'delete_hospital_inventory' inventory.id %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this inventory?')">
+                <i class="fas fa-trash"></i> Delete Inventory
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

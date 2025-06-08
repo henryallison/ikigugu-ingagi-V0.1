@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Management</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+            background: #fff;
+            overflow-x: auto;
+        }
+        
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* Search bar styles - Updated */
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        
+        .search-input-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 15px 8px 35px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+        }
+        
+        .search-btn, .clear-search-btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .search-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .clear-search-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .clear-search-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        /* No results message box */
+        .no-results-message {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .no-results-message i {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .no-results-message h3 {
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+        
+        .no-results-message p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .back-btn, .add-btn {
+            border: 2px solid #3498db;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .back-btn:hover, .add-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 20px;
+        }
+        
+        .doctor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1000px;
+        }
+        
+        .doctor-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .doctor-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+        
+        .doctor-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .doctor-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-view, .btn-edit, .btn-delete {
+            padding: 6px 8px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .btn-view {
+            background-color: #17a2b8;
+        }
+        
+        .btn-edit {
+            background-color: #ffc107;
+        }
+        
+        .btn-delete {
+            background-color: #dc3545;
+        }
+        
+        .btn-view:hover {
+            background-color: #138496;
+        }
+        
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .pagination a {
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #3498db;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .pagination a.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+        
+        /* Enhanced Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: modalopen 0.4s;
+        }
+        
+        @keyframes modalopen {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            color: #3498db;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+        }
+        
+        /* View Modal Specific Styles */
+        .modal-section {
+            margin-bottom: 25px;
+        }
+        
+        .modal-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .modal-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+            font-size: 0.95rem;
+        }
+        
+        .modal-value {
+            color: #333;
+            flex: 1;
+            font-size: 0.95rem;
+        }
+        
+        /* Edit Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: border 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
+        }
+        
+        /* Modal Footer Buttons */
+        .modal-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.95rem;
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #555;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        /* Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .search-container {
+                width: 100%;
+                order: 1;
+            }
+            
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+                order: 2;
+            }
+            
+            .back-btn, .add-btn {
+                width: 48%;
+                justify-content: center;
+            }
+            
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .doctor-table td {
+                font-size: 0.85rem;
+            }
+            
+            .btn-view, .btn-edit, .btn-delete {
+                width: 25px;
+                height: 25px;
+                padding: 4px 6px;
+            }
+            
+            .pagination a {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .modal-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .modal-label {
+                min-width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+             <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1>Doctor Management</h1>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <div class="search-input-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search by doctor name...">
+                        </div>
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button class="clear-search-btn" id="clearSearchBtn">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="{% url 'manage_hospital_home' %}" class="back-btn">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                        <a href="{% url 'add_doctor' %}" class="add-btn">
+                            <i class="fas fa-plus"></i> Add New Doctor
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No results message box -->
+            <div class="no-results-message" id="noResultsMessage">
+                <i class="fas fa-user-md"></i>
+                <h3>No Doctors Found</h3>
+                <p>No doctors match your search criteria. Please try a different search term.</p>
+            </div>
+
+            <div class="table-container">
+                <table class="doctor-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Date of Birth</th>
+                            <th>Gender</th>
+                            <th>Nationality</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Email</th>
+                            <th>Specialty</th>
+                            <th>Hospital</th>
+                            <th>License</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctorsTableBody">
+                        {% for doctor in doctors %}
+                        <tr data-id="{{ doctor.id }}" data-doctor-name="{{ doctor.full_name }}">
+                            <td>{{ doctor.id }}</td>
+                            <td>{{ doctor.full_name }}</td>
+                            <td>{{ doctor.date_of_birth|date:"Y-m-d" }}</td>
+                            <td>{{ doctor.gender }}</td>
+                            <td>{{ doctor.nationality }}</td>
+                            <td>{{ doctor.phone_number }}</td>
+                            <td>{{ doctor.address }}</td>
+                            <td>{{ doctor.email }}</td>
+                            <td>{{ doctor.specialty }}</td>
+                            <td>{{ doctor.hospital.name|default:"N/A" }}</td>
+                            <td>{{ doctor.license_number }}</td>
+                            <td class="actions">
+                                <a href="#" class="btn-view" title="View Details" onclick="openViewModal(event, {{ doctor.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn-edit" title="Edit" onclick="openEditModal(event, {{ doctor.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn-delete" title="Delete" onclick="confirmDelete({{ doctor.id }}, '{{ doctor.full_name }}', event)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12">No doctors found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="viewModal" class="modal">
+                <div class="modal-content">
+                    <button class="close-modal" onclick="closeModal('viewModal')">&times;</button>
+                    <h2>Doctor Details</h2>
+                    <div id="modalContent"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <button class="close-modal" onclick="closeModal('editModal')">&times;</button>
+                    <h2>Edit Doctor</h2>
+                    <form id="editForm" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" id="doctorId" name="id">
+
+                        <div class="form-group">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" name="full_name" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date of Birth</label>
+                            <input type="date" id="dateOfBirth" name="date_of_birth" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" class="form-control" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="nationality">Nationality</label>
+                            <input type="text" id="nationality" name="nationality" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone_number" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" name="address" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="specialty">Specialty</label>
+                            <input type="text" id="specialty" name="specialty" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hospital">Hospital</label>
+                            <select id="hospital" name="hospital" class="form-control" required>
+                                {% for hospital in hospitals %}
+                                <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="license">License</label>
+                            <input type="text" id="license" name="license_number" class="form-control" required>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+<script>
+    // Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const doctorsTableBody = document.getElementById('doctorsTableBody');
+        const rows = doctorsTableBody.querySelectorAll('tr[data-id]');
+        
+        // Search button click handler
+        searchBtn.addEventListener('click', function() {
+            performSearch();
+        });
+        
+        // Clear button click handler
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resetSearch();
+        });
+        
+        // Search input enter key handler
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Toggle clear button visibility based on input
+        searchInput.addEventListener('input', function() {
+            clearSearchBtn.style.display = this.value ? 'block' : 'none';
+        });
+        
+        // Perform search function
+        function performSearch() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            if (searchTerm === '') {
+                resetSearch();
+                return;
+            }
+            
+            let found = false;
+            rows.forEach(row => {
+                const doctorName = row.getAttribute('data-doctor-name').toLowerCase();
+                if (doctorName.includes(searchTerm)) {
+                    row.style.display = '';
+                    found = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            noResultsMessage.style.display = found ? 'none' : 'block';
+        }
+        
+        // Reset search function
+        function resetSearch() {
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            noResultsMessage.style.display = 'none';
+            clearSearchBtn.style.display = 'none';
+        }
+    });
+
+    // DOM Ready - Existing functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Doctor Table Hover
+        const table = document.querySelector('.doctor-table');
+        table.addEventListener('mouseover', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '#e6f7ff';
+            }
+        });
+        table.addEventListener('mouseout', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '';
+            }
+        });
+
+        // Edit Form Submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveDoctorChangesAjax();
+        });
+
+        // Dropdown / Submenu Logic
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+
+                parentLi.classList.toggle('active');
+
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    });
+
+    // Open view modal
+    function openViewModal(event, doctorId) {
+        event.preventDefault();
+
+        const row = document.querySelector(`tr[data-id="${doctorId}"]`);
+        if (row) {
+            const cells = row.cells;
+            const details = {
+                id: doctorId,
+                full_name: cells[1].textContent,
+                date_of_birth: cells[2].textContent,
+                gender: cells[3].textContent,
+                nationality: cells[4].textContent,
+                phone_number: cells[5].textContent,
+                address: cells[6].textContent,
+                email: cells[7].textContent,
+                specialty: cells[8].textContent,
+                hospital: { name: cells[9].textContent },
+                license_number: cells[10].textContent
+            };
+
+            document.getElementById('modalContent').innerHTML = formatViewModalContent(details);
+            document.getElementById('viewModal').style.display = 'block';
+        } else {
+            alert('Doctor details not found in table.');
+        }
+    }
+
+    // Format view modal content
+    function formatViewModalContent(details) {
+        return `
+            <div class="modal-section">
+                <div class="modal-row">
+                    <span class="modal-label">Full Name:</span>
+                    <span class="modal-value">${details.full_name}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Date of Birth:</span>
+                    <span class="modal-value">${details.date_of_birth}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Gender:</span>
+                    <span class="modal-value">${details.gender}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Nationality:</span>
+                    <span class="modal-value">${details.nationality}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Phone:</span>
+                    <span class="modal-value">${details.phone_number}</span>
+                </div>
+                 <div class="modal-row">
+                    <span class="modal-label">Address:</span>
+                    <span class="modal-value">${details.address}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Email:</span>
+                    <span class="modal-value">${details.email}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Specialty:</span>
+                    <span class="modal-value">${details.specialty}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Hospital:</span>
+                    <span class="modal-value">${details.hospital.name}</span>
+                </div>
+                 <div class="modal-row">
+                    <span class="modal-label">License:</span>
+                    <span class="modal-value">${details.license_number}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Open edit modal
+    function openEditModal(event, doctorId) {
+        event.preventDefault();
+
+        const row = document.querySelector(`tr[data-id="${doctorId}"]`);
+        if (row) {
+            const cells = row.cells;
+            document.getElementById('doctorId').value = doctorId;
+            document.getElementById('fullName').value = cells[1].textContent;
+            document.getElementById('dateOfBirth').value = cells[2].textContent;
+            document.getElementById('gender').value = cells[3].textContent;
+            document.getElementById('nationality').value = cells[4].textContent;
+            document.getElementById('phone').value = cells[5].textContent;
+            document.getElementById('address').value = cells[6].textContent;
+            document.getElementById('email').value = cells[7].textContent;
+            document.getElementById('specialty').value = cells[8].textContent;
+            document.getElementById('license').value = cells[10].textContent;
+
+            // Pre-select the hospital in the dropdown
+            const hospitalName = cells[9].textContent;
+            const hospitalSelect = document.getElementById('hospital');
+            for (let i = 0; i < hospitalSelect.options.length; i++) {
+                if (hospitalSelect.options[i].text === hospitalName) {
+                    hospitalSelect.value = hospitalSelect.options[i].value;
+                    break;
+                }
+            }
+
+            document.getElementById('editModal').style.display = 'block';
+        } else {
+            alert('Doctor details not found for editing.');
+        }
+    }
+
+    // Save changes via AJAX
+    function saveDoctorChangesAjax() {
+        const doctorId = document.getElementById('doctorId').value;
+        const formData = new FormData(document.getElementById('editForm'));
+
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        data['action'] = 'edit';
+        data['id'] = doctorId;
+
+        fetch(`{% url 'manage_doctors' %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(responseData => {
+            if (responseData.success) {
+                alert('Changes saved successfully!');
+                updateTableRow(doctorId, responseData.doctor);
+                closeModal('editModal');
+            } else {
+                alert('Error saving changes: ' + responseData.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving changes.');
+        });
+    }
+
+    // Update table row with new data
+    function updateTableRow(doctorId, data) {
+        const row = document.querySelector(`tr[data-id="${doctorId}"]`);
+        if (row) {
+            const cells = row.cells;
+            cells[1].textContent = data.full_name;
+            cells[2].textContent = data.date_of_birth;
+            cells[3].textContent = data.gender;
+            cells[4].textContent = data.nationality;
+            cells[5].textContent = data.phone_number;
+            cells[6].textContent = data.address;
+            cells[7].textContent = data.email;
+            cells[8].textContent = data.specialty;
+            cells[9].textContent = data.hospital_name;
+            cells[10].textContent = data.license_number;
+        }
+    }
+
+    // Confirm delete
+    function confirmDelete(doctorId, doctorName, event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        if (confirm(`Are you sure you want to delete "${doctorName}"? This action cannot be undone.`)) {
+            fetch(`{% url 'manage_doctors' %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                },
+                body: JSON.stringify({ id: doctorId, action: 'delete' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const deletedRow = document.querySelector(`tr[data-id="${doctorId}"]`);
+                    if (deletedRow) {
+                        deletedRow.remove();
+                    }
+                    alert('Doctor deleted successfully!');
+                } else {
+                    alert('Error deleting doctor: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the doctor.');
+            });
+        }
+    }
+
+    // Close modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+</script>
+</body>
+</html>

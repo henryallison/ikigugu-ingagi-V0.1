@@ -1,0 +1,97 @@
+<!-- templates/accounts/register_success.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Successful</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    
+    <!-- Google Fonts for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #007bff, #00c6ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        .success-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 450px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+
+        .checkmark {
+            font-size: 50px;
+            margin-bottom: 20px;
+            animation: pop 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+
+    <script>
+        setTimeout(function () {
+            window.location.href = "{% url 'accounts:login' %}";
+        }, 10000);
+    </script>
+</head>
+<body>
+
+    <div class="logo" style="
+    position: fixed;  /* Changed from absolute to fixed */
+    top: 0;
+    left: 0;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.4rem;
+    z-index: 1000;  /* Ensures it stays on top of other elements */
+    color: #fff;">
+    <a href="#" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 80px; height: 80px; margin-right: 12px; border-radius: 50%;">
+    </a>
+</div>
+
+    <div class="success-container">
+        <div class="checkmark">✅</div>
+        <h2>Registration Successful. We will get you back to the login page shortly. We will contact you vai your email or phone number that you submitted.</h2>
+        <p>You will be redirected to the login page shortly...</p>
+    </div>
+</body>
+</html>

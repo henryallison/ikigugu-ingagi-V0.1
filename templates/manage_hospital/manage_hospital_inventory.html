@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Inventory Management</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    /* Main Content Styles */
+    .main-content {
+        padding: 20px;
+        background: #fff;
+        overflow-x: auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-header h1 {
+        color: #333;
+        margin: 0;
+        font-size: 1.8rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* Search bar styles */
+    .search-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-grow: 1;
+    }
+
+    .search-input-container {
+        position: relative;
+        flex-grow: 1;
+        max-width: 400px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 8px 15px 8px 35px;
+        border: 2px solid #3498db;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+    .search-input:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #3498db;
+    }
+
+    .search-btn, .clear-search-btn {
+        padding: 8px 15px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+    }
+
+    .search-btn {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .search-btn:hover {
+        background-color: #2980b9;
+    }
+
+    .clear-search-btn {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .clear-search-btn:hover {
+        background-color: #5a6268;
+    }
+
+    /* No results message box */
+    .no-results-message {
+        display: none;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .no-results-message i {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+
+    .no-results-message h3 {
+        color: #343a40;
+        margin-bottom: 10px;
+    }
+
+    .no-results-message p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .back-btn, .add-btn {
+        border: 2px solid #3498db;
+        padding: 8px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #3498db;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s;
+    }
+
+    .back-btn:hover, .add-btn:hover {
+        background-color: #3498db;
+        color: white;
+    }
+
+    /* Table Styles */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        background: white;
+        margin-bottom: 20px;
+    }
+
+    .inventory-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 600px;
+    }
+
+    .inventory-table th {
+        background-color: #3498db;
+        color: white;
+        padding: 12px 8px;
+        text-align: left;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+    }
+
+    .inventory-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    .inventory-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .inventory-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* --- MODIFIED: CSS for Inventory List Truncation in the main table --- */
+    .inventory-table tbody td:nth-child(2) { /* Targets the second column (Inventory List) */
+        max-width: 250px; /* Adjust as needed. Wider might cause horizontal scroll */
+        white-space: nowrap; /* Keep text on a single line */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Add ellipsis for clipped text */
+    }
+
+    /* Action Buttons */
+    .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .action-btn {
+        padding: 6px;
+        border-radius: 4px;
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        width: 30px;
+        height: 30px;
+    }
+
+    .action-btn i {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .action-btn.edit-btn {
+        background-color: #28a745;
+    }
+
+    .action-btn.edit-btn:hover {
+        background-color: #218838;
+    }
+
+    .action-btn.delete-btn {
+        background-color: #dc3545;
+    }
+
+    .action-btn.delete-btn:hover {
+        background-color: #c82333;
+    }
+
+    .action-btn.view-btn {
+        background-color: #007bff;
+    }
+
+    .action-btn.view-btn:hover {
+        background-color: #0056b3;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .pagination a {
+        padding: 8px 12px;
+        text-decoration: none;
+        color: #3498db;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .pagination a.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+
+    .pagination a:hover:not(.active) {
+        background-color: #f1f1f1;
+    }
+
+    /* Enhanced Modal Styles */
+    .modal {
+        display: none; /* Initially hidden */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        overflow: auto;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 750px;
+        width: 90%;
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+        position: relative;
+        animation: modalopen 0.4s;
+    }
+
+    @keyframes modalopen {
+        from { opacity: 0; transform: translateY(-50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        font-size: 1.8rem;
+        cursor: pointer;
+        color: #aaa;
+        transition: color 0.3s;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    .close-modal:hover {
+        color: #333;
+    }
+
+    .modal-content h2 {
+        margin-top: 0;
+        color: #3498db;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+    }
+
+    /* View Modal Specific Styles */
+    .modal-section {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .modal-section h3, .modal-section h4 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-size: 1.2rem;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .modal-row {
+        display: flex;
+        margin-bottom: 12px;
+        padding: 8px 0;
+        border-bottom: 1px dashed #eee;
+    }
+
+    .modal-row:last-child {
+        border-bottom: none;
+    }
+
+    .modal-label {
+        font-weight: 600;
+        color: #555;
+        min-width: 150px;
+        font-size: 0.95rem;
+    }
+
+    .modal-value {
+        color: #333;
+        flex: 1;
+        font-size: 0.95rem;
+    }
+
+    /* --- MODIFIED: CSS for full content display in the View Modal (inventory-content div) with scrollbar --- */
+    .inventory-content {
+        white-space: normal; /* Ensures the text wraps naturally to new lines */
+        word-wrap: break-word; /* Breaks very long words to prevent overflow (older browsers) */
+        overflow-wrap: break-word; /* Standard version of word-wrap */
+        padding: 15px; /* Adds space inside the content box */
+        border: 1px solid #e0e0e0; /* Adds a border for visual clarity */
+        background-color: #fcfcfc; /* Slight background */
+        border-radius: 5px; /* Rounded corners */
+        min-height: 100px; /* Ensures a minimum height */
+        max-height: 300px; /* **ADDED**: Maximum height before scrollbar appears */
+        overflow-y: auto; /* **ADDED**: Adds a vertical scrollbar if content exceeds max-height */
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Subtle inner shadow */
+    }
+
+    /* Edit Form Styles */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #555;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        transition: border 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 1em;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 15px;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+    /* Inventory List Textarea */
+    .inventory-list {
+        min-height: 200px;
+        font-family: inherit;
+        line-height: 1.5;
+        resize: vertical;
+    }
+
+    /* Modal Footer Buttons */
+    .modal-footer {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #f0f0f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-secondary {
+        background-color: #f0f0f0;
+        color: #555;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e0e0e0;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .search-container {
+            order: -1;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .search-input-container {
+            max-width: 100%;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .inventory-table td {
+            font-size: 0.85rem;
+        }
+
+        .action-btn {
+            width: 25px;
+            height: 25px;
+            padding: 4px 6px;
+        }
+
+        .pagination a {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        .modal-row {
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .modal-label {
+            min-width: 100%;
+        }
+
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+          <div class="sidebar">
+            <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <!-- Patients Dropdown -->
+                <li class="submenu">
+    <a href="#">
+        <i class="fas fa-user-injured"></i>
+        <span class="link-name">Patients</span>
+        <i class="fas fa-chevron-right dropdown"></i>
+    </a>
+     <ul class="sub-menu">
+        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+     </ul>
+</li>
+<li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+       <div class="main-content">
+    <div class="page-header">
+        <h1>Hospital Inventory Management</h1>
+        <div class="header-actions">
+            <div class="search-container">
+                <div class="search-input-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by hospital name...">
+                </div>
+                <button class="search-btn" id="searchBtn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <button class="clear-search-btn" id="clearSearchBtn">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+            <a href="{% url 'manage_hospital_home' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <button class="add-btn" onclick="openAddModal(event)">
+                <i class="fas fa-plus"></i> Add New Inventory
+            </button>
+        </div>
+    </div>
+
+    <!-- No results message box -->
+    <div class="no-results-message" id="noResultsMessage">
+        <i class="fas fa-search"></i>
+        <h3>No Hospitals Found</h3>
+        <p>No hospitals match your search criteria. Please try a different search term.</p>
+    </div>
+
+    <div class="table-container">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Hospital</th>
+                    <th>Inventory List</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+                {% for inventory in inventories %}
+                <tr data-id="{{ inventory.id }}" data-hospital="{{ inventory.hospital.name }}">
+                    <td>{{ inventory.hospital.name }}</td>
+                    <td title="{{ inventory.inventory_list }}">{{ inventory.inventory_list|truncatechars:50 }}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn view-btn" onclick="viewInventory('{{ inventory.id }}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button
+                                class="action-btn edit-btn"
+                                onclick="editInventory('{{ inventory.id }}', this.dataset.inventoryList, '/manage_hospital/edit_inventory/')"
+                                data-inventory-list="{{ inventory.inventory_list }}" {# Store full content here #}
+                            >
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteInventory('{{ inventory.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('addModal')">&times;</button>
+            <h2>Add Hospital Inventory</h2>
+            <form id="addInventoryForm" action="{% url 'manage_hospital_inventory' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="hospital">Hospital:</label>
+                    <select id="hospital" name="hospital_id" class="form-control" required>
+                        <option value="">Select Hospital</option>
+                        {% for hospital in hospitals %}
+                        <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inventory_list">Inventory List:</label>
+                    <textarea id="inventory_list" name="inventory_list" class="form-control inventory-list" rows="4" required
+                              placeholder="Enter inventory items (one per line or comma-separated)"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Inventory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('editModal')">&times;</button>
+            <h2>Edit Hospital Inventory</h2>
+            <form id="editInventoryForm" action="" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="edit_inventory_id" name="inventory_id">
+                <div class="form-group">
+                    <label for="edit_inventory_list">Inventory List:</label>
+                    <textarea id="edit_inventory_list" name="inventory_list" class="form-control" rows="5" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('deleteModal')">&times;</button>
+            <h2>Delete Inventory</h2>
+            <p>Are you sure you want to delete this inventory?</p>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+                <a href="{% url 'delete_hospital_inventory' inventory_id=0 %}" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('viewModal')">&times;</button>
+            <h2>View Hospital Inventory</h2>
+            <div id="viewModalContent">
+                </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("DOM Content Loaded - Script started.");
+
+        // ================== SEARCH FUNCTIONALITY ==================
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const inventoryTableBody = document.getElementById('inventoryTableBody');
+        const rows = inventoryTableBody.querySelectorAll('tr[data-id]');
+        
+        // Search button click handler
+        searchBtn.addEventListener('click', function() {
+            performSearch();
+        });
+        
+        // Clear button click handler
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resetSearch();
+        });
+        
+        // Search input enter key handler
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Toggle clear button visibility based on input
+        searchInput.addEventListener('input', function() {
+            clearSearchBtn.style.display = this.value ? 'block' : 'none';
+        });
+        
+        // Perform search function
+        function performSearch() {
+            const searchTerm = searchInput.value.trim().toUpperCase();
+            if (searchTerm === '') {
+                resetSearch();
+                return;
+            }
+            
+            let found = false;
+            rows.forEach(row => {
+                const hospitalName = row.getAttribute('data-hospital').toUpperCase();
+                
+                if (hospitalName.includes(searchTerm)) {
+                    row.style.display = '';
+                    found = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            noResultsMessage.style.display = found ? 'none' : 'block';
+        }
+        
+        // Reset search function
+        function resetSearch() {
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            noResultsMessage.style.display = 'none';
+            clearSearchBtn.style.display = 'none';
+        }
+
+        // ================== DROPDOWN MENU FUNCTIONALITY ==================
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function (e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+
+                parentLi.classList.toggle('active');
+
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+
+        // ================== INVENTORY MODAL FUNCTIONS ==================
+
+        // Add modal: Define openAddModal function
+        window.openAddModal = function(event) {
+            console.log("openAddModal function called!");
+            event.preventDefault();
+            const addModal = document.getElementById('addModal');
+            if (addModal) {
+                addModal.style.display = 'flex'; // Use flex for centering
+                console.log("addModal display set to 'flex'.");
+            } else {
+                console.error("Error: 'addModal' element not found!");
+            }
+        };
+
+        // Close modal function
+        window.closeModal = function (modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                console.log(`${modalId} display set to 'none'.`);
+            }
+        };
+
+        // MODIFIED: Edit modal - now takes inventoryList from data attribute
+        window.editInventory = function (inventoryId, inventoryList, url) {
+            document.getElementById('editModal').style.display = 'flex'; // Use flex for centering
+            document.getElementById('edit_inventory_id').value = inventoryId;
+            document.getElementById('edit_inventory_list').value = inventoryList; // This now receives from data-inventory-list
+            document.getElementById('editInventoryForm').action = url + inventoryId + '/';
+            console.log(`Edit modal opened for ID: ${inventoryId}`);
+            console.log(`Inventory List for editing:`, inventoryList); // Debugging
+        };
+
+        // Handle edit form submission
+        document.getElementById('editInventoryForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            console.log("Edit form submitted.");
+            const formData = new FormData(this);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action, true);
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        const row = document.querySelector(`tr[data-id="${response.id}"]`);
+                        if (row) {
+                            row.cells[0].textContent = response.hospital_name;
+                            // Update the displayed truncated content and title for the table row
+                            row.cells[1].textContent = response.inventory_list.length > 50 ? response.inventory_list.substring(0, 50) + '...' : response.inventory_list;
+                            row.cells[1].title = response.inventory_list;
+                            // Update the data-inventory-list attribute on the edit button for future edits
+                            const editButton = row.querySelector('.edit-btn');
+                            if (editButton) {
+                                editButton.dataset.inventoryList = response.inventory_list;
+                            }
+                        }
+                        alert('Inventory updated successfully');
+                        closeModal('editModal');
+                        console.log("Inventory updated successfully.");
+                    } else {
+                        alert('Error updating inventory: ' + response.message);
+                        console.error("Error updating inventory:", response.message);
+                    }
+                } else {
+                    alert('Error updating inventory. Please try again.');
+                    console.error("XHR error updating inventory. Status:", xhr.status);
+                }
+            };
+            xhr.send(formData);
+        });
+
+        // Handle add form submission
+        document.getElementById('addInventoryForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            console.log("Add form submitted.");
+            const formData = new FormData(this);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action, true);
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        const tableBody = document.getElementById('inventoryTableBody');
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-id', response.id);
+                        newRow.setAttribute('data-hospital', response.hospital_name); // Add hospital name for search
+
+                        // Apply truncation for newly added row (consistent with Django filter)
+                        const displayedInventoryList = response.inventory_list.length > 50 ? response.inventory_list.substring(0, 50) + '...' : response.inventory_list;
+                        const fullInventoryList = response.inventory_list; // Keep full content for data attribute
+
+                        newRow.innerHTML = `
+                            <td>${response.hospital_name}</td>
+                            <td title="${fullInventoryList}">${displayedInventoryList}</td>
+                            <td>
+                                <div class="actions">
+                                    <button class="action-btn view-btn" onclick="viewInventory('${response.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button
+                                        class="action-btn edit-btn"
+                                        onclick="editInventory('${response.id}', this.dataset.inventoryList, '/manage_hospital/edit_inventory/')"
+                                        data-inventory-list="${fullInventoryList}" {# Store full content here for new row #}
+                                    >
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteInventory('${response.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(newRow);
+                        closeModal('addModal');
+                        document.getElementById('addInventoryForm').reset();
+                        console.log("Inventory added successfully.");
+                    } else {
+                        alert('Error adding inventory: ' + response.message);
+                        console.error("Error adding inventory:", response.message);
+                    }
+                } else {
+                    alert('Error adding inventory. Please try again.');
+                    console.error("XHR error adding inventory. Status:", xhr.status);
+                }
+            };
+            xhr.send(formData);
+        });
+
+        // Delete inventory
+        window.deleteInventory = function (inventoryId) {
+            if (confirm('Are you sure you want to delete this inventory?')) {
+                console.log(`Deleting inventory ID: ${inventoryId}`);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '{% url "delete_hospital_inventory" 0 %}'.replace('0', inventoryId), true);
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            const row = document.querySelector(`tr[data-id="${inventoryId}"]`);
+                            if (row) row.remove();
+                            alert('Inventory deleted successfully');
+                            console.log("Inventory deleted successfully.");
+                        } else {
+                            alert('Error deleting inventory: ' + response.message);
+                            console.error("Error deleting inventory:", response.message);
+                        }
+                    } else {
+                        alert('Error deleting inventory. Please try again.');
+                        console.error("XHR error deleting inventory. Status:", xhr.status);
+                    }
+                };
+                xhr.send();
+            }
+        };
+
+        // View inventory
+        window.viewInventory = function (inventoryId) {
+            console.log(`Viewing inventory ID: ${inventoryId}`);
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/manage_hospital/view_inventory/' + inventoryId + '/', true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        const modalContent = document.getElementById('viewModalContent');
+                        // Use the |linebreaks filter logic directly in JS for the modal content
+                        const formattedInventoryList = response.data.inventory_list.replace(/\r\n|\r|\n/g, '<br>');
+
+                        modalContent.innerHTML = `
+                            <div class="modal-section">
+                                <h3>Hospital:</h3>
+                                <p>${response.data.hospital}</p>
+                            </div>
+                            <div class="modal-section">
+                                <h3>Inventory List:</h3>
+                                <div class="inventory-content">${formattedInventoryList}</div>
+                            </div>
+                        `;
+                        document.getElementById('viewModal').style.display = 'flex'; // Use flex for centering
+                        console.log("View modal opened successfully.");
+                    } else {
+                        alert('Error viewing inventory: ' + response.message);
+                        console.error("Error viewing inventory:", response.message);
+                    }
+                } else {
+                    alert('Error viewing inventory. Please try again.');
+                    console.error("XHR error viewing inventory. Status:", xhr.status);
+                }
+            };
+            xhr.send();
+        };
+    });
+</script>
+</body>
+</html>

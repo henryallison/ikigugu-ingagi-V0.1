@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Hospital - Rwanda Health Connect</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #eeeaea;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles - Mobile First Approach */
+        .sidebar {
+            width: 100%;
+            background: rgb(248, 248, 248);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: auto;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        .sidebar.active {
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #918ff4;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .logo .menu-toggle {
+            display: block;
+            font-size: 1.5rem;
+            color: #3498db;
+        }
+
+        .logo i.fa-hospital {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 15px 0;
+            flex-grow: 1;
+            display: none;
+        }
+
+        .sidebar.active .nav-links {
+            display: block;
+        }
+
+        .nav-links li {
+            position: relative;
+        }
+
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #0e0d0d;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .nav-links li a:hover {
+            color: #1c94e4;
+            background: rgba(0,0,0,0.03);
+        }
+
+        .nav-links li a:hover i {
+            color: #209cef;
+        }
+
+        .nav-links li a i:first-child {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            color: #555;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-links li a .dropdown {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #777;
+            transition: transform 0.3s;
+        }
+
+        .logout-container {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            margin-top: auto;
+            display: none;
+        }
+
+        .sidebar.active .logout-container {
+            display: block;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #100e0e;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            color: #74abf8;
+        }
+
+        .logout-btn i {
+            font-size: 18px;
+        }
+
+        /* CSS for sub-menu toggle functionality */
+        .nav-links li.active .dropdown {
+            transform: rotate(90deg);
+            color: #3498db;
+        }
+
+        .sub-menu {
+            list-style: none;
+            background: #f9f9f9;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .nav-links li.active .sub-menu {
+            max-height: 500px;
+        }
+
+        .sub-menu li a {
+            padding-left: 50px !important;
+            font-size: 0.9rem;
+            color: #555 !important;
+        }
+
+        .sub-menu li a:hover {
+            color: #3498db !important;
+            background: transparent !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background: #fff;
+            margin-top: 60px; /* Account for fixed sidebar */
+        }
+
+        /* Find Hospital Page Styles */
+        .find-hospital {
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .find-hospital h1 {
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        /* Search Bar Styles */
+        .search-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            padding-left: 45px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-bar input:focus {
+            border-color: #3498db;
+            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.2);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+
+        /* Hospital Cards Grid */
+        .hospital-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .hospital-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hospital-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .hospital-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .learn-more-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .learn-more-btn:hover {
+            background: #2980b9;
+        }
+
+        /* Hospital Details Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 10px;
+            width: 95%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #e74c3c;
+        }
+
+        .hospital-details h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.3rem;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .detail-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .detail-item h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .detail-item p {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Doctors List */
+        .doctors-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .doctor-card {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 3px solid #2ecc71;
+        }
+
+        .doctor-card h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .doctor-card p {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        /* Inventory List - Updated to single card */
+        .inventory-container {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #f39c12;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inventory-item {
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        /* Responsive adjustments for tablets */
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+            
+            .sidebar {
+                width: 250px;
+                height: 100vh;
+                position: sticky;
+                top: 0;
+                max-height: none;
+                overflow: visible;
+            }
+            
+            .logo .menu-toggle {
+                display: none;
+            }
+            
+            .nav-links {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .logout-container {
+                display: block;
+            }
+            
+            .main-content {
+                margin-top: 0;
+                padding: 20px;
+            }
+            
+            .hospital-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+            
+            .detail-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .doctors-list {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .modal-content {
+                padding: 30px;
+            }
+            
+            .hospital-details h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Responsive adjustments for desktops */
+        @media (min-width: 1024px) {
+            .find-hospital h1 {
+                font-size: 1.8rem;
+            }
+            
+            .detail-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .doctors-list {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+                       <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <div class="logo" id="menuToggle">
+    
+                <i class="fas fa-bars menu-toggle"></i>
+            </div>
+
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+ <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+                
+                <!-- New Find Hospital Link -->
+               
+            </ul>
+
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="find-hospital">
+                <h1>Find Hospital</h1>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="hospitalSearch" placeholder="Search hospitals...">
+                    </div>
+                </div>
+
+                <!-- Hospital Grid -->
+                <div class="hospital-grid" id="hospitalGrid">
+                    <!-- Hospital cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hospital Details Modal -->
+    <div class="modal-overlay" id="hospitalModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div class="hospital-details" id="hospitalDetails">
+                <!-- Hospital details will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get hospitals data from Django template context
+            const hospitals = JSON.parse('{{ hospitals|safe }}');
+            console.log('=== Hospital Data Received ===');
+            console.log('Number of hospitals:', hospitals.length);
+            console.log('First hospital:', hospitals[0]);
+
+            // DOM elements
+            const hospitalGrid = document.getElementById('hospitalGrid');
+            const hospitalSearch = document.getElementById('hospitalSearch');
+            const hospitalModal = document.getElementById('hospitalModal');
+            const hospitalDetails = document.getElementById('hospitalDetails');
+            const closeModal = document.getElementById('closeModal');
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            // Display all hospitals - Updated for simpler cards
+            function displayHospitals(hospitalsToDisplay) {
+                console.log('Displaying hospitals:', hospitalsToDisplay.length);
+                hospitalGrid.innerHTML = '';
+                
+                hospitalsToDisplay.forEach(hospital => {
+                    console.log('Creating card for:', hospital.name);
+                    const hospitalCard = document.createElement('div');
+                    hospitalCard.className = 'hospital-card';
+                    hospitalCard.innerHTML = `
+                        <h3>${hospital.name}</h3>
+                        <button class="learn-more-btn" data-id="${hospital.id}">Learn More About This Hospital</button>
+                    `;
+                    hospitalGrid.appendChild(hospitalCard);
+                    
+                    // Add event listener to the "Learn More" button
+                    hospitalCard.querySelector('.learn-more-btn').addEventListener('click', function() {
+                        showHospitalDetails(hospital.id);
+                    });
+                });
+            }
+
+            // Show hospital details in modal - Updated for new fields
+            function showHospitalDetails(hospitalId) {
+                const hospital = hospitals.find(h => h.id === hospitalId);
+                
+                if (hospital) {
+                    // Generate doctors HTML
+                    let doctorsHtml = '';
+                    hospital.doctors.forEach(doctor => {
+                        doctorsHtml += `
+                            <div class="doctor-card">
+                                <h4>${doctor.fullName}</h4>
+                                <p><strong>Date of Birth:</strong> ${doctor.dateOfBirth}</p>
+                                <p><strong>Gender:</strong> ${doctor.gender}</p>
+                                <p><strong>Nationality:</strong> ${doctor.nationality}</p>
+                                <p><strong>Phone:</strong> ${doctor.phone}</p>
+                                <p><strong>Address:</strong> ${doctor.address}</p>
+                                <p><strong>Email:</strong> ${doctor.email}</p>
+                                <p><strong>Specialty:</strong> ${doctor.specialty}</p>
+                                <p><strong>Hospital:</strong> ${doctor.hospital}</p>
+                                <p><strong>License:</strong> ${doctor.license}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    // Generate inventory HTML as a list of items
+                    let inventoryHtml = '';
+                    if (hospital.inventory && hospital.inventory.length > 0) {
+                        inventoryHtml = `
+                            <div class="inventory-container">
+                                <h3>Hospital Inventory</h3>
+                                <ul class="inventory-list">
+                                    ${hospital.inventory.map(item => `
+                                        <li class="inventory-item">
+                                            <span class="item-number">${item.number}</span>
+                                            <span class="item-description">${item.description}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    } else {
+                        inventoryHtml = '<p>No inventory information available.</p>';
+                    }
+                    
+                    // Set the modal content with new fields
+                    hospitalDetails.innerHTML = `
+                        <h2>${hospital.name}</h2>
+                        
+                        <div class="detail-section">
+                            <h3>Hospital Information</h3>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <h4>Facility Type</h4>
+                                    <p>${hospital.facilityType}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Facility Level</h4>
+                                    <p>${hospital.facilityLevel}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Address</h4>
+                                    <p>${hospital.address}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Province</h4>
+                                    <p>${hospital.province}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>District</h4>
+                                    <p>${hospital.district}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Sector</h4>
+                                    <p>${hospital.sector}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Cell</h4>
+                                    <p>${hospital.cell}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Village</h4>
+                                    <p>${hospital.village}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h3>Hospital Administrator</h3>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <h4>First Name</h4>
+                                    <p>${hospital.admin.firstName}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Last Name</h4>
+                                    <p>${hospital.admin.lastName}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Email</h4>
+                                    <p>${hospital.admin.email}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Phone</h4>
+                                    <p>${hospital.admin.phone}</p>
+                                </div>
+                                <div class="detail-item">
+                                    <h4>Position</h4>
+                                    <p>${hospital.admin.position}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h3>Doctors (${hospital.doctors.length})</h3>
+                            <div class="doctors-list">
+                                ${doctorsHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h3>Hospital Inventory (${hospital.inventory.length} items)</h3>
+                            ${inventoryHtml}
+                        </div>
+                    `;
+                    
+                    // Show the modal
+                    hospitalModal.classList.add('active');
+                }
+            }
+
+            // Initialize the page with all hospitals
+            displayHospitals(hospitals);
+
+            // Search functionality
+            hospitalSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filteredHospitals = hospitals.filter(hospital => 
+                    hospital.name.toLowerCase().includes(searchTerm));
+                displayHospitals(filteredHospitals);
+            });
+
+            // Close modal
+            closeModal.addEventListener('click', function() {
+                hospitalModal.classList.remove('active');
+            });
+
+            // Close modal when clicking outside
+            hospitalModal.addEventListener('click', function(e) {
+                if (e.target === hospitalModal) {
+                    hospitalModal.classList.remove('active');
+                }
+            });
+
+            // Mobile menu toggle
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+
+            // Close sidebar when clicking on a link (for mobile)
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.remove('active');
+                    }
+                });
+            });
+
+            // Dropdown functionality for sidebar items (toggle sub-menus)
+            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+            dropdownTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const parentLi = this.closest('li');
+
+                    // Toggle 'active' class on the clicked submenu
+                    parentLi.classList.toggle('active');
+
+                    // Close other open submenus
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== parentLi) {
+                            menu.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                    document.querySelectorAll('.submenu').forEach(li => {
+                        li.classList.remove('active');
+                    });
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside its sub-menu
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

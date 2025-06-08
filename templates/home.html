@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body %}
+
+    <div class="content container-fluid">
+        <div class="page-header">
+            <div class="row align-items-center">
+               <div class="col-sm-6">
+                    <div class="search-box">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search patients, referrals...">
+                            <button class="btn btn-search"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <h3 class="page-title">System Overview</h3>
+                    <ul class="breadcrumb">
+                    </ul>
+                </div>
+            </div>
+        <hr>
+        
+        <!-- Compact Stats Row -->
+        <div class="row compact-stats">
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card bg-one">
+                    <div class="card-body">
+                        <div class="db-widgets">
+                            <div class="db-icon">
+                                <i class="fas fa-user-injured"></i>
+                            </div>
+                            <div class="db-info">
+                                <h3>1,254</h3>
+                                <h6>Patients Today</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card bg-two">
+                    <div class="card-body">
+                        <div class="db-widgets">
+                            <div class="db-icon">
+                                <i class="fas fa-ambulance"></i>
+                            </div>
+                            <div class="db-info">
+                                <h3>86</h3>
+                                <h6>Urgent Referrals</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card bg-three">
+                    <div class="card-body">
+                        <div class="db-widgets">
+                            <div class="db-icon">
+                                <i class="fas fa-hospital"></i>
+                            </div>
+                            <div class="db-info">
+                                <h3>24</h3>
+                                <h6>Facilities Online</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card bg-four">
+                    <div class="card-body">
+                        <div class="db-widgets">
+                            <div class="db-icon">
+                                <i class="fas fa-sms"></i>
+                            </div>
+                            <div class="db-info">
+                                <h3>328</h3>
+                                <h6>SMS Alerts Sent</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row - Updated Structure -->
+        <div class="charts-row">
+            <div class="chart-container">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h5 class="card-title">Referral Trends</h5>
+                            </div>
+                            <div class="col-6">
+                                <ul class="list-inline-group text-right mb-0 pl-0">
+                                    <li class="list-inline-item">
+                                        <div class="form-group mb-0 amount-spent-select">
+                                            <select class="form-control form-control-sm">
+                                                <option>Today</option>
+                                                <option>Last Week</option>
+                                                <option>Last Month</option>
+                                            </select>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="apexcharts-area"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h5 class="card-title">Referral Completion Rate</h5>
+                            </div>
+                            <div class="col-6">
+                                <ul class="list-inline-group text-right mb-0 pl-0">
+                                    <li class="list-inline-item">
+                                        <div class="form-group mb-0 amount-spent-select">
+                                            <select class="form-control form-control-sm">
+                                                <option>Today</option>
+                                                <option>Last Week</option>
+                                                <option>Last Month</option>
+                                            </select>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content Row - Updated Structure -->
+        <div class="content-row">
+            <div class="content-col">
+                <div class="card flex-fill">
+                    <div class="card-header">
+                        <h5 class="card-title">Recent Referrals</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-center">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Referral ID</th>
+                                        <th>Patient Name</th>
+                                        <th class="text-center">From Facility</th>
+                                        <th class="text-center">To Facility</th>
+                                        <th class="text-center">Date</th>
+                                        <th class="text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div>REF2209</div>
+                                        </td>
+                                        <td class="text-nowrap">Jean Uwimana</td>
+                                        <td class="text-center">Ruhango HC</td>
+                                        <td class="text-center">April 13, 2025</td>
+                                        <td class="text-center">CHUK</td>
+                                        <td class="text-right">
+                                            <span class="badge badge-pill bg-success-light">Completed</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div>REF1245</div>
+                                        </td>
+                                        <td class="text-nowrap">Marie Nyirahabimana</td>
+                                        <td class="text-center">Nyamata HC</td>
+                                        <td class="text-center">Mar 21, 2025</td>
+                                        <td class="text-center">KFH</td>
+                                        <td class="text-right">
+                                            <span class="badge badge-pill bg-warning-light">In Transit</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div>REF1625</div>
+                                        </td>
+                                        <td class="text-nowrap">Eric Niyonsenga</td>
+                                        <td class="text-center">Gisenyi HC</td>
+                                        <td class="text-center">Feb 2, 2025</td>
+                                        <td class="text-center">King Faisal</td>
+                                        <td class="text-right">
+                                            <span class="badge badge-pill bg-danger-light">Urgent</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div>REF2516</div>
+                                        </td>
+                                        <td class="text-nowrap">Ange Mutoni</td>
+                                        <td class="text-center">Kibagabaga HC</td>
+                                        <td class="text-center">Apr 7, 2025</td>
+                                        <td class="text-center">CHUB</td>
+                                        <td class="text-right">
+                                            <span class="badge badge-pill bg-info-light">Pending</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-col">
+                <div class="card flex-fill">
+                    <div class="card-header">
+                        <h5 class="card-title">System Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="activity-feed">
+                            <li class="feed-item">
+                                <div class="feed-date">Apr 13</div>
+                                <span class="feed-text"><a>Ruhango HC</a> referred a <a>malaria case</a> to CHUK</span>
+                            </li>
+                            <li class="feed-item">
+                                <div class="feed-date">Mar 21</div>
+                                <span class="feed-text">SMS confirmation sent to <a>Patient REF1245</a></span>
+                            </li>
+                            <li class="feed-item">
+                                <div class="feed-date">Feb 2</div>
+                                <span class="feed-text"><a>Nyamagabe HC</a> came back online after 2h outage</span>
+                            </li>
+                            <li class="feed-item">
+                                <div class="feed-date">Apr 13</div>
+                                <span class="feed-text">New health worker <a>Dr. Niyonkuru</a> registered</span>
+                            </li>
+                            <li class="feed-item">
+                                <div class="feed-date">Mar 21</div>
+                                <span class="feed-text">System maintenance completed</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Small Stats Boxes -->
+        <div class="row sm-stats-row">
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card flex-fill facilities sm-box">
+                    <i class="fas fa-hospital-alt"></i>
+                    <h6>127</h6>
+                    <p>Health Centers</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card flex-fill workers sm-box">
+                    <i class="fas fa-user-md"></i>
+                    <h6>486</h6>
+                    <p>Health Workers</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card flex-fill qr sm-box">
+                    <i class="fas fa-qrcode"></i>
+                    <h6>1,254</h6>
+                    <p>QR Referrals</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card flex-fill sync sm-box">
+                    <i class="fas fa-sync-alt"></i>
+                    <h6>98%</h6>
+                    <p>Sync Success</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Copyright © {% now "Y" %} Rwanda Health Connect.</p>
+        </footer>
+    </div>
+{% endblock %}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rwanda Health Connect</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/add_hospital.css' %}">
+    <link rel="stylesheet" href="{% static 'css/hospital_registration.css' %}">
+    <link rel="stylesheet" href="{% static 'css/hospital.css' %}">
+    <link rel="stylesheet" href="{% static 'css/details.css' %}">
+    <script src="{% static 'js/list.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/list.css' %}">
+    <link rel="stylesheet" href="{% static 'css/create.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+      <div class="sidebar">
+<div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            {% block body %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality for sidebar items (toggle sub-menus)
+            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+            dropdownTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior for dropdowns
+
+                    const parentLi = this.closest('li');
+
+                    // Toggle 'active' class on the clicked submenu
+                    parentLi.classList.toggle('active');
+
+                    // Close other open submenus
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== parentLi) { // If it's not the clicked submenu
+                            menu.classList.remove('active'); // Close it
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                // Check if the click is outside any .submenu or inside a .sub-menu itself
+                // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
+                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                    document.querySelectorAll('.submenu').forEach(li => {
+                        li.classList.remove('active');
+                    });
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside its sub-menu
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
+                });
+            });
+        });
+    </script>
+    
+    <!-- Add this CSS for the logout button -->
+    <style>
+        .logout-container {
+            margin-top: auto; /* Pushes the button to the bottom */
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #100e0e;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background-color: #f5f5f5;
+            color: #74abf8;
+        }
+        
+        .logout-btn i {
+            font-size: 18px;
+        }
+    </style>
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality for sidebar items (toggle sub-menus)
+            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+            dropdownTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior for dropdowns
+
+                    const parentLi = this.closest('li');
+
+                    // Toggle 'active' class on the clicked submenu
+                    parentLi.classList.toggle('active');
+
+                    // Close other open submenus
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== parentLi) { // If it's not the clicked submenu
+                            menu.classList.remove('active'); // Close it
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                // Check if the click is outside any .submenu or inside a .sub-menu itself
+                // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
+                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                    document.querySelectorAll('.submenu').forEach(li => {
+                        li.classList.remove('active');
+                    });
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside its sub-menu
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
+                });
+            });
+        });
+    </script>
+</body>
+</html>

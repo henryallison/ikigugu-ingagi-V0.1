@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Registration Management</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .btn-request {
+            padding: 6px 8px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+            background-color: #28a745;
+        }
+
+        .btn-request:hover {
+            background-color: #218838;
+        }
+        
+        /* Add these styles to your existing CSS */
+        .is-invalid {
+            border-color: #dc3545 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+            background: #fff;
+            overflow-x: auto;
+        }
+        
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+       .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        
+        .search-input-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 15px 8px 35px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+        }
+        
+        .search-btn, .clear-search-btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .search-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .clear-search-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .clear-search-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        /* No results message box */
+        .no-results-message {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .no-results-message i {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .no-results-message h3 {
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+        
+        .no-results-message p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+        
+        /* Keep all your existing styles below */
+        .btn-request {
+            padding: 6px 8px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+            background-color: #28a745;
+        }
+
+        .btn-request:hover {
+            background-color: #218838;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .back-btn {
+            border: 2px solid #3498db;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .back-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 20px;
+        }
+        
+        .hospital-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1200px;
+        }
+        
+        .hospital-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .hospital-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+        
+        .hospital-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .hospital-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-badge.approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-view, .btn-edit, .btn-delete {
+            padding: 6px 8px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .btn-view {
+            background-color: #17a2b8;
+        }
+        
+        .btn-edit {
+            background-color: #ffc107;
+        }
+        
+        .btn-delete {
+            background-color: #dc3545;
+        }
+        
+        .btn-view:hover {
+            background-color: #138496;
+        }
+        
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .pagination a {
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #3498db;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .pagination a.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            color: #3498db;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-section {
+            margin-bottom: 20px;
+        }
+        
+        .modal-section h3, .modal-section h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .modal-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .modal-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 120px;
+        }
+        
+        .modal-value {
+            color: #333;
+            flex: 1;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
+        }
+        
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .search-container {
+                width: 100%;
+                order: 1;
+            }
+            
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+                order: 2;
+            }
+            
+            .back-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hospital-table td {
+                font-size: 0.85rem;
+            }
+            
+            .btn-view, .btn-edit, .btn-delete, .btn-request {
+                width: 25px;
+                height: 25px;
+                padding: 4px 6px;
+            }
+            
+            .pagination a {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+           <div class="logo">
+    <a href="{% url 'home' %}">
+        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
+    </a>
+    <span>Rwanda Health Connect</span>
+</div>
+            <ul class="nav-links">
+                <!-- Dashboard Dropdown -->
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Referrals Dropdown -->
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span class="link-name">Referrals</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
+                        <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                    </ul>
+                </li>
+
+                <li class="submenu">
+                    <a href="#">
+                        <i class="fas fa-user-injured"></i>
+                        <span class="link-name">Patients</span>
+                        <i class="fas fa-chevron-right dropdown"></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="{%url 'patients:manage_patients' %}">Manage Patients</a></li>
+                        <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
+                    </ul>
+                </li>
+                 <li>
+                    <a href="{% url 'find_hospital' %}" class="active">
+                        <i class="fas fa-search-location"></i>
+                        <span class="link-name">Find Hospital</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_hospital_home' %}">
+                        <i class="fas fa-hospital-user"></i>
+                        <span class="link-name">Manage Hospital</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout Button -->
+            <div class="logout-container">
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="page-header">
+                <h1>Hospital Registration Management</h1>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <div class="search-input-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search by hospital name...">
+                        </div>
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button class="clear-search-btn" id="clearSearchBtn">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="{% url 'manage_hospital_home' %}" class="back-btn">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- No results message box -->
+            <div class="no-results-message" id="noResultsMessage">
+                <i class="fas fa-hospital"></i>
+                <h3>No Hospitals Found</h3>
+                <p>No hospitals match your search criteria. Please try a different search term.</p>
+            </div>
+            
+            <div class="table-container">
+                <table class="hospital-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Facility Type</th>
+                            <th>Facility Level</th>
+                            <th>Address</th>
+                            <th>Province</th>
+                            <th>District</th>
+                            <th>Sector</th>
+                            <th>Cell</th>
+                            <th>Village</th>
+                            <th>Status</th>
+                            <th>Admin Email</th>
+                            <th>Admin First Name</th>
+                            <th>Admin Last Name</th>
+                            <th>Admin Phone</th>
+                            <th>Admin Position</th>
+                            <th>Created</th>
+                            <th>Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hospitalsTableBody">
+                        {% for facility in facilities %}
+                        <tr data-id="{{ facility.0 }}" data-hospital-name="{{ facility.1 }}">
+                            <td>{{ facility.0 }}</td>  <!-- id -->
+                            <td>{{ facility.1 }}</td>  <!-- name -->
+                            <td>{{ facility.2 }}</td>  <!-- facility_type -->
+                            <td>{{ facility.3 }}</td>  <!-- facility_level -->
+                            <td>{{ facility.4 }}</td>  <!-- address -->
+                            <td>{{ facility.5 }}</td>  <!-- province -->
+                            <td>{{ facility.6 }}</td>  <!-- district -->
+                            <td>{{ facility.7 }}</td>  <!-- sector -->
+                            <td>{{ facility.8 }}</td>  <!-- cell -->
+                            <td>{{ facility.18 }}</td> <!-- village -->
+                            <td>
+                                <span class="status-badge 
+                                    {% if facility.9 == 'approved' %}approved
+                                    {% elif facility.9 == 'rejected' %}rejected
+                                    {% else %}pending{% endif %}">
+                                    {{ facility.9|title }}
+                                </span>
+                            </td>
+                            <td>{{ facility.12 }}</td> <!-- admin_email -->
+                            <td>{{ facility.13 }}</td> <!-- admin_first_name -->
+                            <td>{{ facility.14 }}</td> <!-- admin_last_name -->
+                            <td>{{ facility.16 }}</td> <!-- admin_phone -->
+                            <td>{{ facility.17 }}</td> <!-- admin_position -->
+                            <td>{{ facility.10 }}</td> <!-- created_at -->
+                            <td>{{ facility.11 }}</td> <!-- updated_at -->
+                            <td class="actions">
+                                <a href="#" class="btn-view" title="View Details" onclick="openViewModal(event, {{ facility.0 }})">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn-edit" title="Edit" onclick="openEditModal(event, {{ facility.0 }})">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn-delete" title="Delete" onclick="confirmDelete({{ facility.0 }}, '{{ facility.1 }}', event)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                                <a href="#" class="btn-request" title="Request Credentials" onclick="requestCredentials({{ facility.0 }}, '{{ facility.12 }}', '{{ facility.16 }}', event)">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if facilities.has_other_pages %}
+            <div class="pagination">
+                {% if facilities.has_previous %}
+                    <a href="?page=1">&laquo; First</a>
+                    <a href="?page={{ facilities.previous_page_number }}">Previous</a>
+                {% endif %}
+                
+                {% for num in facilities.paginator.page_range %}
+                    {% if facilities.number == num %}
+                        <a href="?page={{ num }}" class="active">{{ num }}</a>
+                    {% elif num > facilities.number|add:'-3' and num < facilities.number|add:'3' %}
+                        <a href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if facilities.has_next %}
+                    <a href="?page={{ facilities.next_page_number }}">Next</a>
+                    <a href="?page={{ facilities.paginator.num_pages }}">Last &raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- View Modal -->
+            <div id="viewModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="closeModal('viewModal')">&times;</span>
+                    <h2>Hospital Details</h2>
+                    <div id="modalContent"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="closeModal('editModal')">&times;</span>
+                    <h2>Edit Hospital</h2>
+                    <form id="editForm" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" id="facilityId" name="id">
+                        
+                        <div class="modal-section">
+                            <h3>Facility Information</h3>
+                            <div class="form-group">
+                                <label for="facilityName">Name:</label>
+                                <input type="text" id="facilityName" name="name" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facilityType">Facility Type:</label>
+                                <select id="facilityType" name="facility_type" class="form-control" required>
+                                    <option value="Hospital">Hospital</option>
+                                    <option value="Clinic">Clinic</option>
+                                    <option value="Urgent Care Center">Urgent Care Center</option>
+                                    <option value="Long Term Care Facility">Long Term Care Facility</option>
+                                    <option value="Speciality Center">Speciality Center</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facilityLevel">Facility Level:</label>
+                                <select id="facilityLevel" name="facility_level" class="form-control" required>
+                                    <option value="Primary Facility">Primary Facility</option>
+                                    <option value="Secondary Facility">Secondary Facility</option>
+                                    <option value="Tertiary Care">Tertiary Care</option>
+                                    <option value="Emergency Care">Emergency Care</option>
+                                    <option value="Quaternary Care">Quaternary Care</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="approvalStatus">Approval Status:</label>
+                                <select id="approvalStatus" name="is_approved" class="form-control" required>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="modal-section">
+                            <h3>Location</h3>
+                            <div class="form-group">
+                                <label for="address">Address:</label>
+                                <input type="text" id="address" name="address" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="province">Province:</label>
+                                <select id="province" name="province" class="form-control" required>
+                                    <option value="">Select Province</option>
+                                    <option value="Kigali City">Kigali City</option>
+                                    <option value="Northern Province">Northern Province</option>
+                                    <option value="Southern Province">Southern Province</option>
+                                    <option value="Eastern Province">Eastern Province</option>
+                                    <option value="Western Province">Western Province</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="district">District:</label>
+                                <input type="text" id="district" name="district" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sector">Sector:</label>
+                                <input type="text" id="sector" name="sector" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cell">Cell:</label>
+                                <input type="text" id="cell" name="cell" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="village">Village:</label>
+                                <input type="text" id="village" name="village" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="modal-section">
+                            <p>You can only edit the admin information in the manage admin within the manage hospital app.</p>
+                            <h3>Administrator</h3>
+                            <div class="form-group">
+                                <label for="adminFirstName">First Name:</label>
+                                <input type="text" id="adminFirstName" name="admin_first_name" class="form-control" required readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminLastName">Last Name:</label>
+                                <input type="text" id="adminLastName" name="admin_last_name" class="form-control" required readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminEmail">Email:</label>
+                                <input type="email" id="adminEmail" name="admin_email" class="form-control" required readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminPhone">Phone:</label>
+                                <input type="tel" id="adminPhone" name="admin_phone" class="form-control" required readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminPosition">Position:</label>
+                                <input type="text" id="adminPosition" name="admin_position" class="form-control" required readonly>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality for sidebar items (toggle sub-menus)
+            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+            dropdownTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior for dropdowns
+
+                    const parentLi = this.closest('li');
+
+                    // Toggle 'active' class on the clicked submenu
+                    parentLi.classList.toggle('active');
+
+                    // Close other open submenus
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== parentLi) { // If it's not the clicked submenu
+                            menu.classList.remove('active'); // Close it
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                // Check if the click is outside any .submenu or inside a .sub-menu itself
+                // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
+                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                    document.querySelectorAll('.submenu').forEach(li => {
+                        li.classList.remove('active');
+                    });
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside its sub-menu
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
+                });
+            });
+        });
+    
+    // Facility data cache
+    const facilityDataCache = {};
+    
+    // Add this search functionality to your existing script
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize search functionality
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const hospitalsTableBody = document.getElementById('hospitalsTableBody');
+            const rows = hospitalsTableBody.querySelectorAll('tr');
+            
+            // Search button click handler
+            searchBtn.addEventListener('click', function() {
+                performSearch();
+            });
+            
+            // Clear button click handler
+            clearSearchBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                resetSearch();
+            });
+            
+            // Search input enter key handler
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Toggle clear button visibility based on input
+            searchInput.addEventListener('input', function() {
+                clearSearchBtn.style.display = this.value ? 'block' : 'none';
+            });
+            
+            // Perform search function
+            function performSearch() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                if (searchTerm === '') {
+                    return;
+                }
+                
+                let found = false;
+                rows.forEach(row => {
+                    const hospitalName = row.getAttribute('data-hospital-name').toLowerCase();
+                    if (hospitalName.includes(searchTerm)) {
+                        row.style.display = '';
+                        found = true;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide no results message
+                noResultsMessage.style.display = found ? 'none' : 'block';
+            }
+            
+            // Reset search function
+            function resetSearch() {
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+                noResultsMessage.style.display = 'none';
+            }
+    
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight rows on hover
+        const table = document.querySelector('.hospital-table');
+        table.addEventListener('mouseover', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '#e6f7ff';
+            }
+        });
+        
+        table.addEventListener('mouseout', function(e) {
+            const row = e.target.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '';
+            }
+        });
+
+           });
+        
+        // Edit form submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveFacilityChanges();
+        });
+    });
+    
+    // Open view modal
+    function openViewModal(event, facilityId) {
+        event.preventDefault();
+        const row = document.querySelector(`tr[data-id="${facilityId}"]`);
+        const cells = row.cells;
+        
+        const details = {
+            id: cells[0].textContent,
+            name: cells[1].textContent,
+            type: cells[2].textContent,
+            level: cells[3].textContent,
+            address: cells[4].textContent,
+            province: cells[5].textContent,
+            district: cells[6].textContent,
+            sector: cells[7].textContent,
+            cell: cells[8].textContent,
+            village: cells[9].textContent,
+            status: cells[10].textContent.trim(),
+            adminEmail: cells[11].textContent,
+            adminFirstName: cells[12].textContent,
+            adminLastName: cells[13].textContent,
+            adminPhone: cells[14].textContent,
+            adminPosition: cells[15].textContent,
+            created: cells[16].textContent,
+            updated: cells[17].textContent
+        };
+        
+        document.getElementById('modalContent').innerHTML = formatModalContent(details);
+        document.getElementById('viewModal').style.display = 'block';
+    }
+    
+    function requestCredentials(facilityId, adminEmail, adminPhone, event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        if (!confirm('Send document request SMS to this hospital admin?')) {
+            return;
+        }
+        
+        const btn = event.target.closest('.btn-request');
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        
+        const message = `Dear Admin,\n\nPlease submit your hospital registration documents...`; // your message
+        
+        // Use the correct URL name
+        fetch('{% url "request_credentials_sms" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                facility_id: facilityId,
+                phone: adminPhone,
+                message: message
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Request failed');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Full response:', data);
+            if (data.status === 'success') {
+                alert('SMS sent successfully!');
+            } else {
+                throw new Error(data.message || 'Failed to send SMS');
+            }
+        })
+        .catch(error => {
+            console.error('Error details:', error);
+            alert('Error: ' + error.message);
+        })
+        .finally(() => {
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+        });
+    }
+    
+    // Open edit modal
+    function openEditModal(event, facilityId) {
+        event.preventDefault();
+        const row = document.querySelector(`tr[data-id="${facilityId}"]`);
+        const cells = row.cells;
+        
+        // Cache the original data
+        facilityDataCache[facilityId] = {
+            name: cells[1].textContent,
+            type: cells[2].textContent,
+            level: cells[3].textContent,
+            address: cells[4].textContent,
+            province: cells[5].textContent,
+            district: cells[6].textContent,
+            sector: cells[7].textContent,
+            cell: cells[8].textContent,
+            village: cells[9].textContent,
+            status: cells[10].textContent.trim().toLowerCase(),
+            adminEmail: cells[11].textContent,
+            adminFirstName: cells[12].textContent,
+            adminLastName: cells[13].textContent,
+            adminPhone: cells[14].textContent,
+            adminPosition: cells[15].textContent
+        };
+        
+        // Populate the form
+        document.getElementById('facilityId').value = facilityId;
+        document.getElementById('facilityName').value = facilityDataCache[facilityId].name;
+        
+        // Set dropdown values
+        setDropdownValue('facilityType', facilityDataCache[facilityId].type);
+        setDropdownValue('facilityLevel', facilityDataCache[facilityId].level);
+        setDropdownValue('approvalStatus', facilityDataCache[facilityId].status);
+        setDropdownValue('province', facilityDataCache[facilityId].province);
+        
+        // Set other fields
+        document.getElementById('address').value = facilityDataCache[facilityId].address;
+        document.getElementById('district').value = facilityDataCache[facilityId].district;
+        document.getElementById('sector').value = facilityDataCache[facilityId].sector;
+        document.getElementById('cell').value = facilityDataCache[facilityId].cell;
+        document.getElementById('village').value = facilityDataCache[facilityId].village;
+        document.getElementById('adminEmail').value = facilityDataCache[facilityId].adminEmail;
+        document.getElementById('adminFirstName').value = facilityDataCache[facilityId].adminFirstName;
+        document.getElementById('adminLastName').value = facilityDataCache[facilityId].adminLastName;
+        document.getElementById('adminPhone').value = facilityDataCache[facilityId].adminPhone;
+        document.getElementById('adminPosition').value = facilityDataCache[facilityId].adminPosition;
+        
+        document.getElementById('editModal').style.display = 'block';
+    }
+    
+    
+    // Helper function to set dropdown values
+    function setDropdownValue(id, value) {
+        const dropdown = document.getElementById(id);
+        for (let i = 0; i < dropdown.options.length; i++) {
+            if (dropdown.options[i].value.toLowerCase() === value.toLowerCase()) {
+                dropdown.selectedIndex = i;
+                break;
+            }
+        }
+    }
+    
+    // Modified saveFacilityChanges() function with debug logging
+function saveFacilityChanges() {
+    const form = document.getElementById('editForm');
+    const formData = new FormData(form);
+    const facilityId = formData.get('id');
+    
+    // Clear previous error states
+    document.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.remove();
+    });
+
+    // Add loading indicator
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    fetch('{% url "update_facility" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            // Parse error response even if status is not OK
+            return response.json().then(errData => {
+                // Add statusCode to the error data
+                if (!errData.statusCode) {
+                    errData.statusCode = response.status;
+                }
+                throw errData;
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            updateTableRow(facilityId, {
+                name: formData.get('name'),
+                type: formData.get('facility_type'),
+                level: formData.get('facility_level'),
+                status: formData.get('is_approved'),
+                address: formData.get('address'),
+                province: formData.get('province'),
+                district: formData.get('district'),
+                sector: formData.get('sector'),
+                cell: formData.get('cell'),
+                village: formData.get('village'),
+                adminEmail: formData.get('admin_email'),
+                adminFirstName: formData.get('admin_first_name'),
+                adminLastName: formData.get('admin_last_name'),
+                adminPhone: formData.get('admin_phone'),
+                adminPosition: formData.get('admin_position')
+            });
+            
+            showAlert('success', 'Changes saved successfully!');
+            closeModal('editModal');
+        } else {
+            // Handle other types of errors
+            throw {
+                message: data.message || 'Unknown error',
+                statusCode: 400
+            };
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+        // Handle field-specific validation errors (400 status)
+        if (error.statusCode === 400 && error.field) {
+            const field = document.getElementById(error.field);
+            if (field) {
+                // Add error styling
+                field.classList.add('is-invalid');
+                
+                // Create error message element
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = error.message;
+                
+                // Insert after the field
+                if (field.parentNode) {
+                    field.parentNode.appendChild(errorDiv);
+                } else {
+                    // Fallback if parentNode isn't available
+                    field.insertAdjacentElement('afterend', errorDiv);
+                }
+                
+                // Focus on the problematic field
+                field.focus();
+            } else {
+                showAlert('error', error.message);
+            }
+        } 
+        // Handle other types of errors
+        else {
+            showAlert('error', error.message || 'An error occurred while saving changes');
+        }
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    });
+}
+    
+    // Update table row with new data
+    function updateTableRow(facilityId, data) {
+        const row = document.querySelector(`tr[data-id="${facilityId}"]`);
+        if (row) {
+            const cells = row.cells;
+            
+            cells[1].textContent = data.name;
+            cells[2].textContent = data.type;
+            cells[3].textContent = data.level;
+            cells[4].textContent = data.address;
+            cells[5].textContent = data.province;
+            cells[6].textContent = data.district;
+            cells[7].textContent = data.sector;
+            cells[8].textContent = data.cell;
+            cells[9].textContent = data.village;
+            
+            // Update status badge
+            const statusBadge = cells[10].querySelector('.status-badge');
+            statusBadge.className = 'status-badge ' + data.status;
+            statusBadge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+            
+            cells[11].textContent = data.adminEmail;
+            cells[12].textContent = data.adminFirstName;
+            cells[13].textContent = data.adminLastName;
+            cells[14].textContent = data.adminPhone;
+            cells[15].textContent = data.adminPosition;
+        }
+    }
+    
+    // Show alert message
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+    
+    // Confirm delete
+    function confirmDelete(facilityId, facilityName, event) {
+    // Stop event propagation and prevent default behavior
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    if (confirm(`Are you sure you want to delete "${facilityName}"? This action cannot be undone. All associated record with this hospital will also be deleted`)) {
+        // Use Django URL template tag with replacement for dynamic ID
+        const deleteUrl = `{% url "delete_facility" 0 %}`.replace('0', facilityId);
+        
+        // Create FormData to properly send CSRF token
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch(deleteUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Delete response status:', response.status); // Debug logging
+            if (!response.ok) {
+                return response.json().then(err => { 
+                    console.log('Delete error details:', err); // Debug logging
+                    throw err; 
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Delete success data:', data); // Debug logging
+            if (data.status === 'success') {
+                const deletedRow = document.querySelector(`tr[data-id="${facilityId}"]`);
+                if (deletedRow) {
+                    deletedRow.remove();
+                }
+                showAlert('success', 'Hospital deleted successfully');
+            } else {
+                throw new Error(data.message || 'Failed to delete facility');
+            }
+        })
+        .catch(error => {
+            console.error('Delete error:', error); // Enhanced error logging
+            showAlert('error', error.message || 'An error occurred while deleting the facility.');
+        });
+    }
+}
+
+
+
+    
+    // Close modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+    
+    // Format modal content for view
+    function formatModalContent(details) {
+        return `
+            <div class="modal-section">
+                <h3>${details.name} (ID: ${details.id})</h3>
+                <div class="modal-row">
+                    <span class="modal-label">Status:</span>
+                    <span class="modal-value ${details.status.toLowerCase()}">
+    ${details.status}
+</span>
+
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h4>Facility Information</h4>
+                <div class="modal-row">
+                    <span class="modal-label">Type:</span>
+                    <span class="modal-value">${details.type}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Level:</span>
+                    <span class="modal-value">${details.level}</span>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h4>Location</h4>
+                <div class="modal-row">
+                    <span class="modal-label">Address:</span>
+                    <span class="modal-value">${details.address}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Province:</span>
+                    <span class="modal-value">${details.province}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">District:</span>
+                    <span class="modal-value">${details.district}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Sector:</span>
+                    <span class="modal-value">${details.sector}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Cell:</span>
+                    <span class="modal-value">${details.cell}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Village:</span>
+                    <span class="modal-value">${details.village}</span>
+                </div>
+            </div>
+            
+            <div class="modal-section">
+                <h4>Administrator</h4>
+                <div class="modal-row">
+                    <span class="modal-label">Name:</span>
+                    <span class="modal-value">${details.adminFirstName} ${details.adminLastName}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Email:</span>
+                    <span class="modal-value">${details.adminEmail}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Phone:</span>
+                    <span class="modal-value">${details.adminPhone}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Position:</span>
+                    <span class="modal-value">${details.adminPosition}</span>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="modal-row">
+                    <span class="modal-label">Created:</span>
+                    <span class="modal-value">${details.created}</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Last Updated:</span>
+                    <span class="modal-value">${details.updated}</span>
+                </div>
+            </div>
+        `;
+    }
+</script>
+</body>
+</html>
