@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Hospital - Rwanda Health Connect</title>
-    {% load static %}
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Reset and Base Styles */
@@ -243,7 +241,7 @@
 
         /* Responsive adjustments (keeping these as they affect content, not just sidebar) */
         @media (max-width: 767px) {
-            /* Adjustments for mobile view of the *content* areas */
+            /* Adjustments for mobile view of the content areas */
             .hospital-management h1 {
                 font-size: 1.5rem;
             }
@@ -282,12 +280,10 @@
 <body>
     <div class="container">
         <div class="sidebar">
-           <div class="logo">
-    <a href="{% url 'home' %}">
-        <img src="{% static 'images/logo.jpg' %}" alt="Logo" style="width: 60px; height: 60px; margin-right: 10px; border-radius: 50%;">
-    </a>
-    <span>Rwanda Health Connect</span>
-</div>
+            <div class="logo">
+                <i class="fas fa-hospital" style="color: #3498db;"></i>
+                <span>Rwanda Health</span>
+            </div>
 
             <ul class="nav-links" id="navLinks">
                 <li>
@@ -306,6 +302,8 @@
                     <ul class="sub-menu">
                         <li><a href="{% url 'manage_referral' %}">Manage Referral</a></li>
                         <li><a href="{% url 'track_referral' %}">Track Referral</a></li>
+                        <li><a href="{% url 'referral_details' %}">Referral Details</a></li>
+                        <li><a href="{% url 'referral_list' %}">Referral List</a></li>
                     </ul>
                 </li>
 
@@ -320,12 +318,7 @@
                         <li><a href="{% url 'patients:medical_records'%}">Manage Medical Record</a></li>
                     </ul>
                 </li>
-                <li>
-                    <a href="{% url 'find_hospital' %}" class="active">
-                        <i class="fas fa-search-location"></i>
-                        <span class="link-name">Find Hospital</span>
-                    </a>
-                </li>
+
                 <li>
                     <a href="{% url 'manage_hospital_home' %}">
                         <i class="fas fa-hospital-user"></i>
