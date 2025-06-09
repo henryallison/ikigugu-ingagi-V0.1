@@ -15,8 +15,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
 
-
-
 logger = logging.getLogger(__name__)
 
 # Make sure your Cloudinary configuration is loaded (usually done automatically by the SDK
@@ -32,9 +30,10 @@ logger = logging.getLogger(__name__)
 # ... (existing imports)
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
-from django.views.decorators.csrf import csrf_exempt # CONSIDER REMOVING THIS AND USING CSRF TOKEN IN HEADERS
+from django.views.decorators.csrf import csrf_exempt  # CONSIDER REMOVING THIS AND USING CSRF TOKEN IN HEADERS
 import json
 from .models import Doctor, Facility, HospitalInventory  # Import HospitalInventory model
+
 
 # ... (your existing views like manage_doctors, add_doctor, etc.)
 
@@ -74,14 +73,17 @@ def edit_doctor_ajax(request, doctor_id):
         updated_phone_number = phone_number if phone_number is not None else doctor.phone_number
         updated_email = email if email is not None else doctor.email
         updated_specialty = specialty if specialty is not None else doctor.specialty
-        updated_hospital_id = hospital_id if hospital_id is not None else (doctor.hospital.pk if doctor.hospital else None)
+        updated_hospital_id = hospital_id if hospital_id is not None else (
+            doctor.hospital.pk if doctor.hospital else None)
         updated_license_number = license_number if license_number is not None else doctor.license_number
 
         # Basic validation: Check if essential fields, after considering updates, are not empty
         if not all([updated_full_name, updated_date_of_birth, updated_gender, updated_nationality, updated_address,
-                    updated_phone_number, updated_email, updated_specialty, updated_hospital_id, updated_license_number]):
-            return JsonResponse({'success': False, 'error': "All fields are required. Please fill out the form completely."}, status=400)
-
+                    updated_phone_number, updated_email, updated_specialty, updated_hospital_id,
+                    updated_license_number]):
+            return JsonResponse(
+                {'success': False, 'error': "All fields are required. Please fill out the form completely."},
+                status=400)
 
         # --- Validate email format ---
         # Only validate if the email has changed or if it was null and now has a value
@@ -95,22 +97,29 @@ def edit_doctor_ajax(request, doctor_id):
         # Only validate if the phone number has changed or if it was null and now has a value
         if updated_phone_number and (updated_phone_number != doctor.phone_number):
             if not validate_rwanda_phone(updated_phone_number):
-                return JsonResponse({'success': False, 'error': "Invalid Rwandan phone number format. Examples: +25078XXXXXXX or 078XXXXXXX."}, status=400)
+                return JsonResponse({'success': False,
+                                     'error': "Invalid Rwandan phone number format. Examples: +25078XXXXXXX or 078XXXXXXX."},
+                                    status=400)
 
         # --- Check for phone number uniqueness (excluding the current doctor) ---
         if updated_phone_number and (updated_phone_number != doctor.phone_number) and \
-           Doctor.objects.filter(phone_number=updated_phone_number).exclude(pk=doctor_id).exists():
-            return JsonResponse({'success': False, 'error': f"A doctor with the phone number '{updated_phone_number}' already exists."}, status=409)
+                Doctor.objects.filter(phone_number=updated_phone_number).exclude(pk=doctor_id).exists():
+            return JsonResponse(
+                {'success': False, 'error': f"A doctor with the phone number '{updated_phone_number}' already exists."},
+                status=409)
 
         # --- Check for email uniqueness (excluding the current doctor) ---
         if updated_email and (updated_email != doctor.email) and \
-           Doctor.objects.filter(email=updated_email).exclude(pk=doctor_id).exists():
-            return JsonResponse({'success': False, 'error': f"A doctor with the email '{updated_email}' already exists."}, status=409)
+                Doctor.objects.filter(email=updated_email).exclude(pk=doctor_id).exists():
+            return JsonResponse(
+                {'success': False, 'error': f"A doctor with the email '{updated_email}' already exists."}, status=409)
 
         # --- Check for license number uniqueness (excluding the current doctor) ---
         if updated_license_number and (updated_license_number != doctor.license_number) and \
-           Doctor.objects.filter(license_number=updated_license_number).exclude(pk=doctor_id).exists():
-            return JsonResponse({'success': False, 'error': f"A doctor with the license number '{updated_license_number}' already exists."}, status=409)
+                Doctor.objects.filter(license_number=updated_license_number).exclude(pk=doctor_id).exists():
+            return JsonResponse({'success': False,
+                                 'error': f"A doctor with the license number '{updated_license_number}' already exists."},
+                                status=409)
 
         # --- Retrieve the hospital object, ensuring its 'is_approved' status is 'Approved' ---
         hospital = None
@@ -118,7 +127,8 @@ def edit_doctor_ajax(request, doctor_id):
             try:
                 hospital = get_object_or_404(Facility, pk=updated_hospital_id, is_approved='Approved')
             except Facility.DoesNotExist:
-                return JsonResponse({'success': False, 'error': 'Selected hospital not found or not approved.'}, status=400)
+                return JsonResponse({'success': False, 'error': 'Selected hospital not found or not approved.'},
+                                    status=400)
         # If updated_hospital_id is None, it means the client might want to unset the hospital, which is allowed.
 
         # --- Update the doctor object's fields ---
@@ -131,7 +141,7 @@ def edit_doctor_ajax(request, doctor_id):
         doctor.email = updated_email
         doctor.specialty = updated_specialty
         doctor.license_number = updated_license_number
-        doctor.hospital = hospital # Assign the validated hospital object (or None)
+        doctor.hospital = hospital  # Assign the validated hospital object (or None)
 
         doctor.save()
 
@@ -158,10 +168,13 @@ def edit_doctor_ajax(request, doctor_id):
         return JsonResponse({'success': False, 'error': 'Invalid JSON in request body.'}, status=400)
     except IntegrityError as e:
         logger.error(f"Integrity error editing doctor {doctor_id}: {e}", exc_info=True)
-        return JsonResponse({'success': False, 'error': "An internal database error occurred (possible duplicate entry). Please try again."}, status=500)
+        return JsonResponse({'success': False,
+                             'error': "An internal database error occurred (possible duplicate entry). Please try again."},
+                            status=500)
     except Exception as e:
         logger.error(f"An unexpected error occurred while editing doctor {doctor_id}: {e}", exc_info=True)
         return JsonResponse({'success': False, 'error': f"An unexpected error occurred: {str(e)}"}, status=500)
+
 
 # AJAX View for Deleting a Doctor
 @require_POST
@@ -177,6 +190,8 @@ def delete_doctor_ajax(request, doctor_id):
     except Exception as e:
         logger.error(f"Error deleting doctor {doctor_id}: {e}", exc_info=True)
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 # In your views.py file
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -196,11 +211,12 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.conf import settings # Make sure settings is imported to access CLOUDINARY_ configs
-from accounts.models import User # Ensure User is imported if used elsewhere in the file
+from django.conf import settings  # Make sure settings is imported to access CLOUDINARY_ configs
+from accounts.models import User  # Ensure User is imported if used elsewhere in the file
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 # --- Doctor Management Views ---
 
@@ -241,13 +257,18 @@ def manage_doctors(request):
                     updated_email = email if email is not None else doctor.email
                     updated_specialty = specialty if specialty is not None else doctor.specialty
                     # Hospital ID: use the new ID, or if not provided, the current hospital's ID (or None if no hospital)
-                    updated_hospital_id = hospital_id if hospital_id is not None else (doctor.hospital.pk if doctor.hospital else None)
+                    updated_hospital_id = hospital_id if hospital_id is not None else (
+                        doctor.hospital.pk if doctor.hospital else None)
                     updated_license_number = license_number if license_number is not None else doctor.license_number
 
                     # **1. Basic Validation: All fields are required**
-                    if not all([updated_full_name, updated_date_of_birth, updated_gender, updated_nationality, updated_address,
-                                updated_phone_number, updated_email, updated_specialty, updated_hospital_id, updated_license_number]):
-                        return JsonResponse({'success': False, 'error': "All fields are required. Please fill out the form completely."}, status=400)
+                    if not all([updated_full_name, updated_date_of_birth, updated_gender, updated_nationality,
+                                updated_address,
+                                updated_phone_number, updated_email, updated_specialty, updated_hospital_id,
+                                updated_license_number]):
+                        return JsonResponse({'success': False,
+                                             'error': "All fields are required. Please fill out the form completely."},
+                                            status=400)
 
                     # **2. Validate Email Format** (only if email changed)
                     if updated_email and (updated_email != doctor.email):
@@ -259,31 +280,40 @@ def manage_doctors(request):
                     # **3. Validate Rwandan Phone Number Format** (only if phone number changed)
                     if updated_phone_number and (updated_phone_number != doctor.phone_number):
                         if not validate_rwanda_phone(updated_phone_number):
-                            return JsonResponse({'success': False, 'error': "Invalid Rwandan phone number format. Examples: +25078XXXXXXX or 078XXXXXXX."}, status=400)
+                            return JsonResponse({'success': False,
+                                                 'error': "Invalid Rwandan phone number format. Examples: +25078XXXXXXX or 078XXXXXXX."},
+                                                status=400)
 
                     # **4. Uniqueness Check: Phone Number** (excluding the current doctor being edited)
                     if updated_phone_number and (updated_phone_number != doctor.phone_number) and \
-                       Doctor.objects.filter(phone_number=updated_phone_number).exclude(pk=doctor_id).exists():
-                        return JsonResponse({'success': False, 'error': f"A doctor with the phone number '{updated_phone_number}' already exists."}, status=409) # 409 Conflict
+                            Doctor.objects.filter(phone_number=updated_phone_number).exclude(pk=doctor_id).exists():
+                        return JsonResponse({'success': False,
+                                             'error': f"A doctor with the phone number '{updated_phone_number}' already exists."},
+                                            status=409)  # 409 Conflict
 
                     # **5. Uniqueness Check: Email** (excluding the current doctor being edited)
                     if updated_email and (updated_email != doctor.email) and \
-                       Doctor.objects.filter(email=updated_email).exclude(pk=doctor_id).exists():
-                        return JsonResponse({'success': False, 'error': f"A doctor with the email '{updated_email}' already exists."}, status=409)
+                            Doctor.objects.filter(email=updated_email).exclude(pk=doctor_id).exists():
+                        return JsonResponse(
+                            {'success': False, 'error': f"A doctor with the email '{updated_email}' already exists."},
+                            status=409)
 
                     # **6. Uniqueness Check: License Number** (excluding the current doctor being edited)
                     if updated_license_number and (updated_license_number != doctor.license_number) and \
-                       Doctor.objects.filter(license_number=updated_license_number).exclude(pk=doctor_id).exists():
-                        return JsonResponse({'success': False, 'error': f"A doctor with the license number '{updated_license_number}' already exists."}, status=409)
+                            Doctor.objects.filter(license_number=updated_license_number).exclude(pk=doctor_id).exists():
+                        return JsonResponse({'success': False,
+                                             'error': f"A doctor with the license number '{updated_license_number}' already exists."},
+                                            status=409)
 
                     # **7. Hospital Approval Status Check**
                     hospital = None
-                    if updated_hospital_id: # Only try to fetch if an ID is provided
+                    if updated_hospital_id:  # Only try to fetch if an ID is provided
                         try:
                             # Ensure the selected hospital exists and is approved
                             hospital = get_object_or_404(Facility, pk=updated_hospital_id, is_approved='Approved')
                         except Facility.DoesNotExist:
-                            return JsonResponse({'success': False, 'error': 'Selected hospital not found or not approved.'}, status=400)
+                            return JsonResponse(
+                                {'success': False, 'error': 'Selected hospital not found or not approved.'}, status=400)
                     # If updated_hospital_id is None, it means the client might want to unset the hospital, which is allowed.
 
                     # If all validations pass, update the doctor object
@@ -296,9 +326,9 @@ def manage_doctors(request):
                     doctor.email = updated_email
                     doctor.specialty = updated_specialty
                     doctor.license_number = updated_license_number
-                    doctor.hospital = hospital # Assign the validated hospital object (or None)
+                    doctor.hospital = hospital  # Assign the validated hospital object (or None)
 
-                    doctor.save() # Save changes to the database
+                    doctor.save()  # Save changes to the database
 
                     # Return success JSON response with updated doctor data
                     return JsonResponse({
@@ -320,10 +350,12 @@ def manage_doctors(request):
                     })
                 except Doctor.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Doctor not found.'}, status=404)
-                except InterruptedError as e: # Catch database integrity errors (e.g., unexpected unique constraint violation)
+                except InterruptedError as e:  # Catch database integrity errors (e.g., unexpected unique constraint violation)
                     logger.error(f"Integrity error editing doctor {doctor_id}: {e}", exc_info=True)
-                    return JsonResponse({'success': False, 'error': "An internal database error occurred (possible duplicate entry). Please try again."}, status=500)
-                except Exception as e: # Catch any other unexpected errors during edit
+                    return JsonResponse({'success': False,
+                                         'error': "An internal database error occurred (possible duplicate entry). Please try again."},
+                                        status=500)
+                except Exception as e:  # Catch any other unexpected errors during edit
                     logger.error(f"An unexpected error occurred while editing doctor {doctor_id}: {e}", exc_info=True)
                     return JsonResponse({'success': False, 'error': str(e)}, status=500)
                 # --- End Edit Doctor Logic ---
@@ -333,11 +365,11 @@ def manage_doctors(request):
                 try:
                     doctor = get_object_or_404(Doctor, pk=doctor_id)
                     doctor_name = doctor.full_name
-                    doctor.delete() # Delete the doctor record
+                    doctor.delete()  # Delete the doctor record
                     return JsonResponse({'success': True, 'message': f'Doctor "{doctor_name}" deleted successfully!'})
                 except Doctor.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Doctor not found.'}, status=404)
-                except Exception as e: # Catch any errors during deletion
+                except Exception as e:  # Catch any errors during deletion
                     logger.error(f"Error deleting doctor {doctor_id}: {e}", exc_info=True)
                     return JsonResponse({'success': False, 'error': str(e)}, status=500)
                 # --- End Delete Doctor Logic ---
@@ -345,11 +377,12 @@ def manage_doctors(request):
             else:
                 return JsonResponse({'success': False, 'error': 'Invalid action specified.'}, status=400)
 
-        except json.JSONDecodeError: # Handles cases where the request body is not valid JSON
+        except json.JSONDecodeError:  # Handles cases where the request body is not valid JSON
             return JsonResponse({'success': False, 'error': 'Invalid JSON in request body.'}, status=400)
-        except Exception as e: # General error handling for the POST request
+        except Exception as e:  # General error handling for the POST request
             logger.error(f"Error in manage_doctors POST handler: {e}", exc_info=True)
-            return JsonResponse({'success': False, 'error': f"An unexpected server error occurred: {str(e)}"}, status=500)
+            return JsonResponse({'success': False, 'error': f"An unexpected server error occurred: {str(e)}"},
+                                status=500)
 
     # Handles GET requests (for initially loading the page with the doctor list)
     else:
@@ -363,6 +396,7 @@ def manage_doctors(request):
             'hospitals': hospitals,
         }
         return render(request, 'manage_hospital/manage_doctors.html', context)
+
 
 def validate_rwanda_phone(phone_number):
     """
@@ -444,7 +478,7 @@ def add_doctor(request):
             )
 
             messages.success(request, f"Doctor '{full_name}' added successfully!")
-            return redirect('manage_doctors') # Redirect to the doctor list after successful addition
+            return redirect('manage_doctors')  # Redirect to the doctor list after successful addition
 
         except ValidationError as e:
             messages.error(request, f"Validation Error: {e.message}")
@@ -460,31 +494,32 @@ def add_doctor(request):
 
     return render(request, 'manage_hospital/add_doctor.html', {'hospitals': hospitals})
 
+
 def manage_hospital_inventory(request, id=None):
     if request.method == 'POST':
         hospital_id = request.POST.get('hospital_id')
         inventory_list = request.POST.get('inventory_list')
-        
+
         try:
             # Check if inventory already exists for this hospital
             existing_inventory = HospitalInventory.objects.filter(hospital_id=hospital_id).first()
-            
+
             if existing_inventory:
                 return JsonResponse({
                     'success': False,
                     'message': 'Inventory already exists for this hospital. You can only edit or delete it.'
                 })
-            
+
             # Create new inventory
             inventory = HospitalInventory(
                 hospital_id=hospital_id,
                 inventory_list=inventory_list
             )
             inventory.save()
-            
+
             # Get the hospital name for the response
             hospital = inventory.hospital
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Inventory added successfully',
@@ -493,20 +528,20 @@ def manage_hospital_inventory(request, id=None):
                 'inventory_list': inventory.inventory_list,
                 'created_at': inventory.created_at.strftime('%Y-%m-%d %H:%M:%S')
             })
-            
+
         except Exception as e:
             logger.error(f"Error saving inventory: {str(e)}")
             return JsonResponse({
                 'success': False,
                 'message': 'Error saving inventory. Please try again.'
             })
-    
+
     try:
         hospitals = Facility.objects.filter(is_approved='Approved')
-        
+
         # Check for inventory ID in both URL path and query parameters
         inventory_id = id or request.GET.get('id')
-        
+
         if inventory_id:  # Handle inventory details view
             try:
                 inventory = HospitalInventory.objects.get(id=inventory_id)
@@ -517,18 +552,19 @@ def manage_hospital_inventory(request, id=None):
             except HospitalInventory.DoesNotExist:
                 messages.error(request, 'Inventory not found')
                 return redirect('manage_hospital_inventory')
-        
+
         inventories = HospitalInventory.objects.all()
         context = {
             'hospitals': hospitals,
             'inventories': inventories
         }
         return render(request, 'manage_hospital/manage_hospital_inventory.html', context)
-        
+
     except Exception as e:
         logger.error(f"Error in manage_hospital_inventory: {str(e)}", exc_info=True)
         messages.error(request, "An error occurred while loading the inventory list.")
         return render(request, 'manage_hospital/manage_hospital_inventory.html', {'hospitals': hospitals})
+
 
 @require_GET
 def view_hospital_inventory(request, inventory_id):
@@ -548,17 +584,18 @@ def view_hospital_inventory(request, inventory_id):
             'message': 'Inventory not found'
         })
 
+
 def edit_hospital_inventory(request, inventory_id):
     try:
         inventory = HospitalInventory.objects.get(id=inventory_id)
-        
+
         if request.method == 'POST':
             inventory_list = request.POST.get('inventory_list')
-            
+
             if inventory_list:
                 inventory.inventory_list = inventory_list
                 inventory.save()
-                
+
                 return JsonResponse({
                     'success': True,
                     'message': 'Inventory updated successfully',
@@ -583,19 +620,20 @@ def edit_hospital_inventory(request, inventory_id):
                     'created_at': inventory.created_at.strftime('%Y-%m-%d %H:%M:%S')
                 }
             })
-            
+
     except HospitalInventory.DoesNotExist:
         return JsonResponse({
             'success': False,
             'message': 'Inventory not found'
         })
-        
+
     except Exception as e:
         logger.error(f"Error updating inventory: {str(e)}")
         return JsonResponse({
             'success': False,
             'message': 'Error updating inventory. Please try again.'
         })
+
 
 @require_POST
 def delete_hospital_inventory(request, inventory_id):
@@ -618,6 +656,7 @@ def delete_hospital_inventory(request, inventory_id):
             'message': 'Error deleting inventory. Please try again.'
         })
 
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 import requests
@@ -626,6 +665,8 @@ import requests
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
+
+
 # No need for cloudinary.utils here since we're not generating signed URLs
 
 def download_hospital_credentials(request, facility_id):
@@ -648,13 +689,13 @@ def download_hospital_credentials(request, facility_id):
 
         # Fetch the file content from Cloudinary
         response_from_cloudinary = requests.get(download_url, stream=True)
-        response_from_cloudinary.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
+        response_from_cloudinary.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
 
         # Prepare Django's HttpResponse to send the file to the user
         filename = f"{document.facility.name.replace(' ', '_')}_credentials.zip"
         django_response = HttpResponse(
-            response_from_cloudinary.iter_content(chunk_size=8192), # Stream content for efficiency
-            content_type='application/zip' # Ensures browser treats it as a ZIP file
+            response_from_cloudinary.iter_content(chunk_size=8192),  # Stream content for efficiency
+            content_type='application/zip'  # Ensures browser treats it as a ZIP file
         )
         django_response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
@@ -669,13 +710,15 @@ def download_hospital_credentials(request, facility_id):
         if e.response is not None:
             error_message += f" (Status: {e.response.status_code}, Response: {e.response.text})"
         messages.error(request, error_message)
-        print(f"DEBUG: Cloudinary Request Error: {error_message}") # Print error details for server logs
+        print(f"DEBUG: Cloudinary Request Error: {error_message}")  # Print error details for server logs
         return redirect('evaluate_hospital_credentials')
     except Exception as e:
         # Catch any other unexpected errors
         messages.error(request, f"An unexpected error occurred: {str(e)}")
-        print(f"DEBUG: Unexpected Error: {str(e)}") # Print unexpected error for server logs
+        print(f"DEBUG: Unexpected Error: {str(e)}")  # Print unexpected error for server logs
         return redirect('evaluate_hospital_credentials')
+
+
 def evaluate_hospital_credentials(request):
     # Get all facility documents with their related facility information
     facility_documents = FacilityDocument.objects.select_related('facility').all()
@@ -698,9 +741,10 @@ def evaluate_hospital_credentials(request):
 
 
 from django.shortcuts import render, redirect
-from accounts.models import Facility # Assuming Facility is in accounts.models
+from accounts.models import Facility  # Assuming Facility is in accounts.models
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist # Import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist  # Import ObjectDoesNotExist
+
 
 def request_credentials_email(request):
     if request.method == 'POST':
@@ -714,19 +758,20 @@ def request_credentials_email(request):
         except ObjectDoesNotExist:
             messages.error(request, 'The email you entered does not exist in our system.')
             # Use the correct URL name for redirection
-            return redirect('request_credentials_email') # Changed from 'request_credentials'
+            return redirect('request_credentials_email')  # Changed from 'request_credentials'
     # Use the correct URL name for redirection in the initial GET request if needed
     return render(request, 'accounts/request_credentials.html')
+
+
 from django.http import JsonResponse
 from .models import FacilityDocument  # Added the new model
 import json
-
 
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib import messages
 from django.shortcuts import redirect, render
-from .models import FacilityDocument # Updated import
+from .models import FacilityDocument  # Updated import
 from django.db import connection
 
 from django.utils.timezone import now
@@ -798,12 +843,15 @@ def upload_documents(request):
     }
 
     return render(request, 'accounts/upload_documents.html', context)
+
+
 def success_page(request):
     context = {
         'admin_first_name': request.session.get('admin_first_name', ''),
         'admin_last_name': request.session.get('admin_last_name', ''),
     }
     return render(request, 'accounts/success_page.html', context)
+
 
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -830,8 +878,6 @@ def normalize_phone_number(raw_phone):
         elif len(processed_phone) == 9 and processed_phone.startswith('7'):
             processed_phone = '+250' + processed_phone
     return processed_phone
-
-
 
 
 @login_required
@@ -1017,7 +1063,7 @@ def update_user(request):
                 remove_from_old_hospital = (
                         new_role != 'hospital' or
                         (
-                                    new_role == 'hospital' and target_hospital_instance and original_hospital.id != target_hospital_instance.id)
+                                new_role == 'hospital' and target_hospital_instance and original_hospital.id != target_hospital_instance.id)
                 )
                 if remove_from_old_hospital:
                     # Check if the facility's admin email/phone truly belongs to this user before clearing
@@ -1106,6 +1152,8 @@ def update_user(request):
         else:
             error_detail = f"An unexpected error occurred: {str(e)}"
         return JsonResponse({'status': 'error', 'message': error_detail}, status=500)  # Use 500 for true server errors
+
+
 @login_required
 def delete_user(request, user_id):
     """Deletes a user with proper JSON response."""
@@ -1124,6 +1172,8 @@ def delete_user(request, user_id):
             logger.error(f"Error deleting user: {str(e)}", exc_info=True)
             return JsonResponse({'status': 'error', 'message': f'Failed to delete user: {str(e)}'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
 @csrf_exempt
 def update_facility(request):
     try:
@@ -1256,10 +1306,6 @@ def update_facility(request):
         }, status=500)
 
 
-
-
-
-
 @login_required
 @require_POST
 def request_credentials_sms(request):
@@ -1319,7 +1365,9 @@ def request_credentials_sms(request):
             'message': str(e)
         }, status=500)
 
-from django.db import IntegrityError, transaction # Import transaction and IntegrityError
+
+from django.db import IntegrityError, transaction  # Import transaction and IntegrityError
+
 
 @require_POST
 @csrf_exempt
@@ -1352,7 +1400,7 @@ def delete_facility(request, facility_id):
         return JsonResponse({
             'status': 'error',
             'message': 'Cannot delete facility due to related records. Ensure all related records are properly handled or deleted first.'
-        }, status=409) # 409 Conflict is appropriate for this type of error
+        }, status=409)  # 409 Conflict is appropriate for this type of error
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -1360,6 +1408,7 @@ def delete_facility(request, facility_id):
             'status': 'error',
             'message': f'Failed to delete facility: {str(e)}'
         }, status=500)
+
 
 def manage_hospital_view(request):
     return render(request, 'manage_hospital/manage_hospital.html')
@@ -1649,9 +1698,6 @@ def add_hospital_view(request):
     })
 
 
-
-
-
 def get_approved_hospitals(request):
     """
     API endpoint to return a list of approved hospitals.
@@ -1671,11 +1717,13 @@ def login_view(request):
             if user:
                 # Update is_active to 1 and last_login to current date and time
                 current_time = datetime.now()
-                cursor.execute("UPDATE accounts_user SET is_active=1, last_login=%s WHERE email=%s", [current_time, email])
+                cursor.execute("UPDATE accounts_user SET is_active=1, last_login=%s WHERE email=%s",
+                               [current_time, email])
                 # Proceed with login
                 return redirect('home_page')
             else:
                 return render(request, 'login.html', {'error': 'Invalid credentials'})
+
 
 def logout_view(request):
     # Assuming user email is stored in session
@@ -1686,8 +1734,6 @@ def logout_view(request):
             cursor.execute("UPDATE accounts_user SET is_active=0, last_login='pending' WHERE email=%s", [email])
     # Proceed with logout
     return redirect('login_page')
-
-
 
 
 @require_POST
@@ -1738,6 +1784,7 @@ def request_credenti(request):
             'message': str(e)
         }, status=500)
 
+
 @csrf_exempt
 def send_verification_sms(request):
     if request.method != 'POST':
@@ -1780,6 +1827,7 @@ def send_verification_sms(request):
             'error': f'Internal server error: {str(e)}',
             'type': 'Server Error'
         }, status=500)
+
 
 @login_required
 def get_user_password(request, user_id):
