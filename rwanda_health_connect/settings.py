@@ -23,7 +23,14 @@ cloudinary.config(
   secure = True
 )
 
-
+# Cloudinary Storage Settings
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
+    'STATICFILES_MANIFEST_ROOT': os.path.join(BASE_DIR, 'manifest'),
+    'SECURE': True
+}
 # Add these near the top with your other settings
 SITE_URL = 'http://localhost:8000'  # Change to your production URL when deployed
 SITE_NAME = 'Rwanda Health Connect'
