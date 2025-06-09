@@ -764,7 +764,7 @@
                     hospitalCard.innerHTML = `
                         <h3>${hospital.name || 'Unnamed Hospital'}</h3>
                         <p class="hospital-type">${hospital.facilityType || ''} ${hospital.facilityLevel || ''}</p>
-                        <p class="hospital-location">${hospital.district || ''}, ${hospital.sector || ''}</p>
+                        <p class="hospital-location">${hospital.district || '', hospital.sector || ''}</p>
                         <button class="learn-more-btn" data-id="${hospital.id}">
                             View Details
                         </button>
@@ -831,7 +831,7 @@
                     // Fallback: if it's a non-empty string (meaning Python didn't parse it or sent raw)
                     inventoryHtml = `
                         <div class="inventory-section">
-                            <h3><i class="fas fa-warehouse"></i> Hospital Inventory (Raw Text)</h3>
+                            <h3><i class="fas fa-warehouse"></i> Hospital Inventory</h3>
                             <div class="inventory-text">
                                 ${hospital.inventory.replace(/\n/g, '<br>')}
                             </div>
@@ -852,7 +852,7 @@
                 hospitalDetails.innerHTML = `
                     <div class="hospital-header">
                         <h2>${hospital.name || 'Unnamed Hospital'}</h2>
-                        <p class="hospital-license">License: ${hospital.license_number || 'Not specified'}</p>
+                        {# Removed the hospital license display #}
                     </div>
                     
                     <div class="hospital-info-grid">
@@ -933,7 +933,7 @@
             });
 
             // Close modal when clicking outside
-            hospitalModal.addEventListener('click', function(e) {
+            closeModal.addEventListener('click', function(e) {
                 if (e.target === hospitalModal) {
                     hospitalModal.classList.remove('active');
                 }
