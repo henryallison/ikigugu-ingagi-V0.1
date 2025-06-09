@@ -1410,8 +1410,63 @@ def delete_facility(request, facility_id):
         }, status=500)
 
 
-def manage_hospital_view(request):
-    return render(request, 'manage_hospital/manage_hospital.html')
+# In your manage_hospital/views.py (or the relevant app's views.py)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model  # To get your custom User model
+from django.contrib.auth.decorators import login_required  # Import the decorator for authentication checks
+from django.core.exceptions import PermissionDenied  # To handle unauthorized access (optional, but good practice)
+
+# Get your custom User model, which is defined in your 'accounts' app's models.py
+User = get_user_model()
+
+
+@login_required(
+    login_url='/accounts/login/')  # KEY FIX: Ensures the user is logged in. If not, it redirects to the login URL.
+def manage_hospital_view(request):  # Keep this function name as per your usage
+    """
+    Renders the main hospital management dashboard for authenticated users.
+    Leverages Django's @login_required decorator for session management.
+    """
+    print("\n--- Entering manage_hospital_view (Auth via @login_required) ---")
+
+    # Since @login_required has already ensured the user is authenticated,
+    # we can now safely assume request.user is populated with the authenticated User object.
+
+    # --- ADDED DEBUG PRINTS FOR REQUEST.USER PROPERTIES ---
+    print(f"DEBUG IN VIEW: request.user.is_authenticated: {request.user.is_authenticated}")
+    print(f"DEBUG IN VIEW: request.user.is_active: {request.user.is_active}")
+    print(f"DEBUG IN VIEW: request.user.email: {request.user.email}")
+    print(f"DEBUG IN VIEW: request.user.role: {request.user.role}")
+    # --- END ADDED DEBUG PRINTS ---
+
+    # Get user's role directly from request.user. This is the most reliable way.
+    user_role = request.user.role
+    print(f"DEBUG IN VIEW: Authenticated user: {request.user.email}, Role: {user_role}")
+
+    current_user_hospital_id = None
+    # If the user is a 'hospital' admin, we fetch their associated hospital ID.
+    # We use hasattr to safely check if 'hospital' attribute exists before accessing it.
+    if user_role == 'hospital' and hasattr(request.user, 'hospital') and request.user.hospital:
+        current_user_hospital_id = request.user.hospital.id
+        print(
+            f"DEBUG IN VIEW: Hospital Admin {request.user.email} is linked to Hospital ID: {current_user_hospital_id}")
+    elif user_role == 'admin':
+        print(f"DEBUG IN VIEW: System Admin {request.user.email} logged in.")
+    else:
+        # This block catches any roles that should not access this dashboard at all.
+        # If roles are strictly 'admin' or 'hospital', this might indicate a misconfigured role.
+        print(f"DEBUG IN VIEW: User {request.user.email} has an unhandled role: '{user_role}'. Denying access.")
+        raise PermissionDenied("Your role does not have access to this dashboard.")
+
+    print(f"DEBUG IN VIEW: Rendering dashboard for user: {request.user.email}, Final Role: {user_role}")
+
+    # Pass the user_role to the template context.
+    # This variable ('user_role') will now be reliably available in your HTML for RBAC.
+    return render(request, 'manage_hospital/manage_hospital.html', {
+        'user_role': user_role,
+        'current_user_hospital_id': current_user_hospital_id  # Useful for future, granular data filtering
+    })
 
 
 def manage_hospital_registration_view(request):
