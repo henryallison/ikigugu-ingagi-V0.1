@@ -536,6 +536,69 @@
         .btn-secondary:hover {
             background-color: #5a6268;
         }
+
+        /* Confirmation Modal Styles */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .confirmation-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            text-align: center;
+        }
+
+        .confirmation-content h2 {
+            margin-top: 0;
+            color: #dc3545;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .confirmation-content p {
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-confirm {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .btn-confirm:hover {
+            background-color: #c82333;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
         
         /* Responsive Styles */
         @media screen and (max-width: 768px) {
@@ -571,6 +634,36 @@
             .pagination a {
                 padding: 6px 10px;
                 font-size: 0.85rem;
+            }
+
+            /* Adjust modal for mobile */
+            .modal-content {
+                margin: 10% auto;
+                padding: 15px;
+            }
+
+            .modal-row {
+                flex-direction: column;
+            }
+
+            .modal-label {
+                min-width: 100%;
+                margin-bottom: 5px;
+            }
+
+            /* Adjust confirmation modal for mobile */
+            .confirmation-content {
+                margin: 20% auto;
+                padding: 15px;
+            }
+
+            .confirmation-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn-confirm, .btn-cancel {
+                width: 100%;
             }
         }
         
@@ -716,6 +809,18 @@
                 <div class="loading-spinner"></div>
             </div>
 
+            <!-- Delete Confirmation Modal -->
+            <div id="deleteConfirmationModal" class="confirmation-modal">
+                <div class="confirmation-content">
+                    <h2>Confirm Deletion</h2>
+                    <p id="deleteConfirmationMessage">Are you sure you want to delete this user?</p>
+                    <div class="confirmation-buttons">
+                        <button class="btn btn-confirm" id="confirmDeleteBtn">Delete</button>
+                        <button class="btn btn-cancel" id="cancelDeleteBtn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="table-container">
                 <table class="hospital-table">
                     <thead>
@@ -770,13 +875,13 @@
                             <td>{{ user.updated_at|date:"Y-m-d H:i:s" }}</td>
                             <td>
                                 <div class="actions">
-                                    <a href="#" class="btn-view" title="View Details">
+                                    <a href="#" class="btn-view" title="View Details" onclick="openViewModal(event, {{ user.id }})">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="#" class="btn-edit" title="Edit">
+                                    <a href="#" class="btn-edit" title="Edit" onclick="openEditModal(event, {{ user.id }})">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="#" class="btn-delete" title="Delete">
+                                    <a href="#" class="btn-delete" title="Delete" onclick="confirmDelete({{ user.id }}, '{{ user.first_name }} {{ user.last_name }}', event)">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </div>
@@ -927,8 +1032,7 @@
     </div>
 
     <script>
-
-         document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // Dropdown functionality for sidebar items (toggle sub-menus)
             const dropdownTriggers = document.querySelectorAll('.submenu > a');
 
@@ -952,8 +1056,6 @@
 
             // Close dropdowns when clicking outside
             document.addEventListener('click', function(e) {
-                // Check if the click is outside any .submenu or inside a .sub-menu itself
-                // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
                 if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
                     document.querySelectorAll('.submenu').forEach(li => {
                         li.classList.remove('active');
@@ -964,12 +1066,20 @@
             // Prevent dropdown from closing when clicking inside its sub-menu
             document.querySelectorAll('.sub-menu').forEach(menu => {
                 menu.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
+                    e.stopPropagation();
                 });
             });
+
+            // Initialize search functionality
+            initSearch();
+
+            // Initialize delete confirmation modal buttons
+            initDeleteConfirmation();
         });
+
         // User data cache
         const userDataCache = {};
+        let currentUserIdToDelete = null;
 
         // Function to show loading overlay
         function showLoading() {
@@ -990,7 +1100,7 @@
             
             // Create message element
             const popup = document.createElement('div');
-            popup.className = `alert-popup ${type}`;
+            popup.className = alert-popup ${type};
             
             // Set icon based on message type
             let icon;
@@ -1026,18 +1136,33 @@
             }, 5000);
         }
 
-        // Replace the default Django messages with beautiful popups
-        document.addEventListener('DOMContentLoaded', function() {
-            const messages = document.querySelectorAll('.messages li');
-            messages.forEach(msg => {
-                const type = msg.className || 'info';
-                showPopupMessage(type, msg.textContent);
-                msg.remove(); // Remove the original message
+        // Initialize delete confirmation modal
+        function initDeleteConfirmation() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            const modal = document.getElementById('deleteConfirmationModal');
+
+            confirmBtn.addEventListener('click', function() {
+                if (currentUserIdToDelete) {
+                    deleteUser(currentUserIdToDelete);
+                }
+                modal.style.display = 'none';
+                currentUserIdToDelete = null;
             });
 
-            // Initialize search functionality
-            initSearch();
-        });
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                currentUserIdToDelete = null;
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    currentUserIdToDelete = null;
+                }
+            });
+        }
 
         // Initialize search functionality
         function initSearch() {
@@ -1137,7 +1262,7 @@
         // Open view modal
         function openViewModal(event, userId) {
             event.preventDefault();
-            const row = document.querySelector(`tr[data-id="${userId}"]`);
+            const row = document.querySelector(tr[data-id="${userId}"]);
             const cells = row.cells;
             const details = {
                 id: cells[0].textContent,
@@ -1163,7 +1288,7 @@
         // Open edit modal
         function openEditModal(event, userId) {
             event.preventDefault();
-            const row = document.querySelector(`tr[data-id="${userId}"]`);
+            const row = document.querySelector(tr[data-id="${userId}"]);
             const cells = row.cells;
 
             // Cache the original data, including new fields and hospital ID
@@ -1225,75 +1350,94 @@
             document.getElementById('licenseNumber').value = userDataCache[userId].licenseNumber;
             document.getElementById('password').value = "";
 
+            // Initialize password toggle
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            if (togglePasswordBtn) {
+                togglePasswordBtn.addEventListener('click', function() {
+                    const passwordInput = document.getElementById('password');
+                    const icon = this.querySelector('i');
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+
             document.getElementById('editModal').style.display = 'block';
         }
 
         // Save user changes
-function saveUserChanges() {
-    showLoading();
-    
-    const form = document.getElementById('editForm');
-    const formData = new FormData(form);
-    const userId = document.getElementById('userId').value;
-    const role = document.getElementById('editRole').value;
-    const hospitalId = document.getElementById('editHospital').value;
+        function saveUserChanges() {
+            showLoading();
+            
+            const form = document.getElementById('editForm');
+            const formData = new FormData(form);
+            const userId = document.getElementById('userId').value;
+            const role = document.getElementById('editRole').value;
+            const hospitalId = document.getElementById('editHospital').value;
 
-    // Client-side phone validation before sending to backend
-    const phoneInput = document.getElementById('phone').value;
-    if (!/^\+2507[0-9]{8}$/.test(phoneInput)) {
-        hideLoading();
-        showPopupMessage('error', "Please enter a valid Rwandan phone number (e.g., +250781234567).");
-        return;
-    }
+            // Client-side phone validation before sending to backend
+            const phoneInput = document.getElementById('phone').value;
+            if (!/^\+2507[0-9]{8}$/.test(phoneInput)) {
+                hideLoading();
+                showPopupMessage('error', "Please enter a valid Rwandan phone number (e.g., +250781234567).");
+                return;
+            }
 
-    // This check is still needed for hospital admin even if field is display-only
-    if (role === 'hospital' && !hospitalId) {
-        hideLoading();
-        showPopupMessage('error', "Please select an approved hospital for Hospital Administrator.");
-        return;
-    }
-    
-    fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-                'X-Requested-With': 'XMLHttpRequest'
+            // This check is still needed for hospital admin even if field is display-only
+            if (role === 'hospital' && !hospitalId) {
+                hideLoading();
+                showPopupMessage('error', "Please select an approved hospital for Hospital Administrator.");
+                return;
             }
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw err; });
-            }
-            return response.json();
-        })
-        .then(data => {
-            hideLoading();
-            if (data && data.status === 'success') {
-                showPopupMessage('success', data.message || 'User updated successfully');
-                
-                // Check if data.user exists before trying to access its properties
-                if (data.user && data.user.id) {
-                    updateTableRow(data.user.id, data.user);
-                } else {
-                    // If user data isn't in response, refresh the page
-                    window.location.reload();
-                }
-                
-                closeModal('editModal');
-            } else {
-                showPopupMessage('error', data.message || 'Failed to update user');
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error in saveUserChanges:', error);
-            showPopupMessage('error', error.message || 'Error updating user. Please try again.');
-        });
-}
+            
+            fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    if (data && data.status === 'success') {
+                        showPopupMessage('success', data.message || 'User updated successfully');
+                        
+                        // Check if data.user exists before trying to access its properties
+                        if (data.user && data.user.id) {
+                            updateTableRow(data.user.id, data.user);
+                        } else {
+                            // If user data isn't in response, refresh the page
+                            window.location.reload();
+                        }
+                        
+                        closeModal('editModal');
+                    } else {
+                        showPopupMessage('error', data.message || 'Failed to update user');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error in saveUserChanges:', error);
+                    showPopupMessage('error', error.message || 'Error updating user. Please try again.');
+                });
+        }
+
         // Update table row with new data
         function updateTableRow(userId, data) {
-            const row = document.querySelector(`tr[data-id="${userId}"]`);
+            const row = document.querySelector(tr[data-id="${userId}"]);
             if (row) {
                 // Update the data-hospital-id attribute if the hospital changes
                 row.dataset.hospitalId = data.hospital_id || '';
@@ -1313,7 +1457,7 @@ function saveUserChanges() {
                 const statusCell = cells[10];
                 const badge = statusCell.querySelector('.badge');
                 if (badge) {
-                    badge.className = `badge ${data.is_active ? 'bg-success' : 'bg-danger'}`;
+                    badge.className = badge ${data.is_active ? 'bg-success' : 'bg-danger'};
                     badge.textContent = data.is_active ? 'Active' : 'Inactive';
                 }
                 cells[11].textContent = "••••••••";
@@ -1342,41 +1486,51 @@ function saveUserChanges() {
         // Confirm delete with loading indicator
         function confirmDelete(userId, userName, event) {
             event.preventDefault();
-            if (confirm(`Are you sure you want to delete user ${userName}? This action cannot be undone.`)) {
-                showLoading();
-                fetch(`/manage_hospital/delete_user/${userId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
+            currentUserIdToDelete = userId;
+            
+            // Set the confirmation message
+            document.getElementById('deleteConfirmationMessage').textContent = 
+                Are you sure you want to delete user ${userName}? This action cannot be undone.;
+            
+            // Show the confirmation modal
+            document.getElementById('deleteConfirmationModal').style.display = 'block';
+        }
+
+        // Delete user function
+        function deleteUser(userId) {
+            showLoading();
+            fetch(/manage_hospital/delete_user/${userId}/, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    if (data && data.status === 'success') {
+                        // Remove row from table
+                        const row = document.querySelector(tr[data-id="${userId}"]);
+                        if (row) {
+                            row.remove();
                         }
-                    })
-                    .then(response => {
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                            return;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        hideLoading();
-                        if (data && data.status === 'success') {
-                            // Remove row from table
-                            const row = document.querySelector(`tr[data-id="${userId}"]`);
-                            if (row) {
-                                row.remove();
-                            }
-                            showPopupMessage('success', data.message || 'User deleted successfully');
-                        } else if (data && data.status === 'error') {
-                            showPopupMessage('error', data.message || 'Failed to delete user');
-                        }
-                    })
-                    .catch(error => {
-                        hideLoading();
-                        console.error('Error deleting user:', error);
-                        showPopupMessage('error', 'Error deleting user: ' + (error.message || 'Please try again'));
-                    });
-            }
+                        showPopupMessage('success', data.message || 'User deleted successfully');
+                    } else if (data && data.status === 'error') {
+                        showPopupMessage('error', data.message || 'Failed to delete user');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error deleting user:', error);
+                    showPopupMessage('error', 'Error deleting user: ' + (error.message || 'Please try again'));
+                });
         }
 
         // Close modal
@@ -1434,7 +1588,7 @@ function saveUserChanges() {
             if (!passwordCell) return;
             // If we don't have the password in cache, fetch it
             if (!userDataCache[userId] || !userDataCache[userId].password) {
-                fetch(`/manage_hospital/get_user_password/${userId}/`)
+                fetch(/manage_hospital/get_user_password/${userId}/)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
