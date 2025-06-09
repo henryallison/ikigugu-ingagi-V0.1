@@ -185,7 +185,12 @@ USE_TZ = True
 # Add right after STATICFILES_DIRS
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For collectstatic
 STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'  # Cloudinary for static files
+from textbee import Client
 
+api_key = os.getenv('TEXTBEE_API_KEY')
+device_id = os.getenv('TEXTBEE_DEVICE_ID')
+
+client = Client(api_key, device_id)
 
 # settings.py
 TEXTBEE_API_KEY = '9fb160b3-65aa-46ca-9c52-1ba4156e2fbd'  # Your API key
