@@ -1781,7 +1781,6 @@ def send_verification_sms(request):
             'type': 'Server Error'
         }, status=500)
 
-
 @login_required
 def get_user_password(request, user_id):
     try:
