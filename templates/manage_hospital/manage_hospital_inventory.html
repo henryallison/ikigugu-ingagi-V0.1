@@ -15,7 +15,25 @@
         background: #fff;
         overflow-x: auto;
     }
+     .export-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
 
+.export-btn:hover {
+    background-color: #218838;
+}
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -626,6 +644,9 @@
                 <button class="clear-search-btn" id="clearSearchBtn">
                     <i class="fas fa-times"></i> Clear
                 </button>
+                 <button class="export-btn" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
             </div>
             <a href="{% url 'manage_hospital_home' %}" class="back-btn">
                 <i class="fas fa-arrow-left"></i> Back
@@ -750,6 +771,62 @@
 </div>
 
 <script>
+// Excel Export Functionality for Hospital Inventory
+document.getElementById('exportExcelBtn').addEventListener('click', exportInventoryToExcel);
+
+function exportInventoryToExcel() {
+    const table = document.querySelector('.inventory-table');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    // Add headers
+    const headers = [];
+    table.querySelectorAll('th').forEach(th => {
+        headers.push(th.textContent);
+    });
+    csv.push(headers.join(','));
+    
+    // Add data rows
+    rows.forEach(row => {
+        if (row.getAttribute('data-id')) { // Only data rows
+            const rowData = [];
+            row.querySelectorAll('td').forEach((td, index) => {
+                let data = td.textContent;
+                
+                // For the inventory list column, get the full content from title attribute
+                if (index === 1) { // Inventory List column is index 1 (0-based)
+                    data = td.getAttribute('title') || td.textContent;
+                }
+                
+                // Clean up data for CSV
+                data = data.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                data = data.replace(/"/g, '""');
+                if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
+                    data = `"${data}"`;
+                }
+                rowData.push(data);
+            });
+            csv.push(rowData.join(','));
+        }
+    });
+    
+    // Download CSV file
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `hospital_inventory_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    
+}
+
+
+
     document.addEventListener('DOMContentLoaded', function () {
         console.log("DOM Content Loaded - Script started.");
 
