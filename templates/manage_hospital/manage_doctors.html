@@ -496,6 +496,108 @@
                 margin-bottom: 5px;
             }
         }
+
+        /* Export Button Styles */
+.export-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.delete-confirm-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 25px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: modalopen 0.4s;
+}
+
+.delete-confirm-content h3 {
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.delete-confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.delete-confirm-btn {
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+}
+
+.delete-confirm-btn.confirm {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-confirm-btn.confirm:hover {
+    background-color: #c82333;
+}
+
+.delete-confirm-btn.cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.delete-confirm-btn.cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .export-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .delete-confirm-buttons {
+        flex-direction: column;
+    }
+    
+    .delete-confirm-btn {
+        width: 100%;
+    }
+}
+
+        
     </style>
 </head>
 <body>
@@ -569,27 +671,30 @@
             <div class="page-header">
                 <h1>Doctor Management</h1>
                 <div class="header-actions">
-                    <div class="search-container">
-                        <div class="search-input-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Search by doctor name...">
-                        </div>
-                        <button class="search-btn" id="searchBtn">
-                            <i class="fas fa-search"></i> Search
-                        </button>
-                        <button class="clear-search-btn" id="clearSearchBtn">
-                            <i class="fas fa-times"></i> Clear
-                        </button>
-                    </div>
-                    <div class="action-buttons">
-                        <a href="{% url 'manage_hospital_home' %}" class="back-btn">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </a>
-                        <a href="{% url 'add_doctor' %}" class="add-btn">
-                            <i class="fas fa-plus"></i> Add New Doctor
-                        </a>
-                    </div>
-                </div>
+    <div class="search-container">
+        <div class="search-input-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by doctor name...">
+        </div>
+        <button class="search-btn" id="searchBtn">
+            <i class="fas fa-search"></i> Search
+        </button>
+        <button class="clear-search-btn" id="clearSearchBtn">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+    <button class="export-btn" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
+    <div class="action-buttons">
+        <a href="{% url 'manage_hospital_home' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <a href="{% url 'add_doctor' %}" class="add-btn">
+            <i class="fas fa-plus"></i> Add New Doctor
+        </a>
+    </div>
+</div>
             </div>
 
             <!-- No results message box -->
@@ -858,11 +963,25 @@
                 e.stopPropagation();
             });
         });
+
+        // Close modal when clicking on close button or outside the modal
+        document.querySelectorAll('.modal .close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', function() {
+                this.closest('.modal').style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
     });
 
     // Open view modal
     function openViewModal(event, doctorId) {
         event.preventDefault();
+        event.stopPropagation();
 
         const row = document.querySelector(`tr[data-id="${doctorId}"]`);
         if (row) {
@@ -882,7 +1001,14 @@
             };
 
             document.getElementById('modalContent').innerHTML = formatViewModalContent(details);
-            document.getElementById('viewModal').style.display = 'block';
+            const viewModal = document.getElementById('viewModal');
+            viewModal.style.display = 'block';
+
+            // Add close button event listener
+            const closeBtn = viewModal.querySelector('.close');
+            closeBtn.onclick = function() {
+                viewModal.style.display = 'none';
+            };
         } else {
             alert('Doctor details not found in table.');
         }
@@ -892,6 +1018,7 @@
     function formatViewModalContent(details) {
         return `
             <div class="modal-section">
+                <span class="close">&times;</span>
                 <div class="modal-row">
                     <span class="modal-label">Full Name:</span>
                     <span class="modal-value">${details.full_name}</span>
@@ -939,6 +1066,7 @@
     // Open edit modal
     function openEditModal(event, doctorId) {
         event.preventDefault();
+        event.stopPropagation();
 
         const row = document.querySelector(`tr[data-id="${doctorId}"]`);
         if (row) {
@@ -964,10 +1092,22 @@
                 }
             }
 
-            document.getElementById('editModal').style.display = 'block';
+            const editModal = document.getElementById('editModal');
+            editModal.style.display = 'block';
+
+            // Add close button event listener
+            const closeBtn = editModal.querySelector('.close');
+            closeBtn.onclick = function() {
+                editModal.style.display = 'none';
+            };
         } else {
             alert('Doctor details not found for editing.');
         }
+    }
+
+    // Close modal function
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
     }
 
     // Save changes via AJAX
@@ -1024,42 +1164,149 @@
         }
     }
 
-    // Confirm delete
-    function confirmDelete(doctorId, doctorName, event) {
-        event.stopPropagation();
-        event.preventDefault();
+    // Excel Export Functionality
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
 
-        if (confirm(`Are you sure you want to delete "${doctorName}"? This action cannot be undone.`)) {
-            fetch(`{% url 'manage_doctors' %}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
-                },
-                body: JSON.stringify({ id: doctorId, action: 'delete' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const deletedRow = document.querySelector(`tr[data-id="${doctorId}"]`);
-                    if (deletedRow) {
-                        deletedRow.remove();
+    function exportToExcel() {
+        const table = document.querySelector('.doctor-table');
+        const rows = table.querySelectorAll('tr');
+        let csv = [];
+        
+        // Add headers
+        const headers = [];
+        table.querySelectorAll('th').forEach(th => {
+            if (th.textContent !== 'Actions') { // Skip Actions column
+                headers.push(th.textContent);
+            }
+        });
+        csv.push(headers.join(','));
+        
+        // Add data rows
+        rows.forEach(row => {
+            if (row.getAttribute('data-id')) { // Only data rows
+                const rowData = [];
+                row.querySelectorAll('td').forEach((td, index) => {
+                    if (index < 11) { // Skip Actions column (index 11)
+                        let data = td.textContent.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                        data = data.replace(/"/g, '""');
+                        if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
+                            data = `"${data}"`;
+                        }
+                        rowData.push(data);
                     }
-                    alert('Doctor deleted successfully!');
-                } else {
-                    alert('Error deleting doctor: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while deleting the doctor.');
-            });
-        }
+                });
+                csv.push(rowData.join(','));
+            }
+        });
+        
+        // Download CSV file
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `doctors_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showPopupMessage('success', 'Doctors data exported successfully!');
     }
 
-    // Close modal
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
+    // Delete Confirmation Modal
+    function confirmDelete(doctorId, doctorName, event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Create modal if it doesn't exist
+        let modal = document.getElementById('deleteConfirmationModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'deleteConfirmationModal';
+            modal.className = 'delete-confirm-modal';
+            modal.innerHTML = `
+                <div class="delete-confirm-content">
+                    <h3>Confirm Delete</h3>
+                    <p>Are you sure you want to delete <strong>${doctorName}</strong>? This action cannot be undone.</p>
+                    <div class="delete-confirm-buttons">
+                        <button class="delete-confirm-btn confirm" id="confirmDeleteBtn">Delete</button>
+                        <button class="delete-confirm-btn cancel" id="cancelDeleteBtn">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Add event listeners
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                deleteDoctor(doctorId);
+                modal.style.display = 'none';
+            });
+            
+            document.getElementById('cancelDeleteBtn').addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
+        
+        // Show modal
+        modal.style.display = 'block';
+        
+        // Close when clicking outside
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    }
+
+    function deleteDoctor(doctorId) {
+        fetch(`{% url 'manage_doctors' %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+            },
+            body: JSON.stringify({ id: doctorId, action: 'delete' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const deletedRow = document.querySelector(`tr[data-id="${doctorId}"]`);
+                if (deletedRow) {
+                    deletedRow.remove();
+                }
+                showPopupMessage('success', 'Doctor deleted successfully!');
+            } else {
+                showPopupMessage('error', 'Error deleting doctor: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showPopupMessage('error', 'An error occurred while deleting the doctor.');
+        });
+    }
+
+    // Beautiful Popup Message (add this if not already present)
+    function showPopupMessage(type, message) {
+        const container = document.getElementById('popup-messages-container') || document.body;
+        
+        const popup = document.createElement('div');
+        popup.className = `alert-popup ${type}`;
+        popup.innerHTML = `
+            <div class="message-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} icon"></i>
+                <span>${message}</span>
+            </div>
+            <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        container.appendChild(popup);
+        
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.remove();
+            }
+        }, 5000);
     }
 </script>
 </body>
