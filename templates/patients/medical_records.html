@@ -15,6 +15,25 @@
     width: 90%;
     /* Ensure modal doesn't get too wide */
 }
+ .export-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
 
 .modal-row {
     display: flex;
@@ -655,6 +674,9 @@ select.form-control {
                     <button class="clear-search-btn" id="clearSearchBtn">
                         <i class="fas fa-times"></i> Clear
                     </button>
+                    <button class="export-btn" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
                 </div>
                 <div class="action-buttons">
                     <a href="{% url 'home' %}" class="back-btn">
@@ -1051,6 +1073,58 @@ select.form-control {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
+
+    // Excel Export Functionality
+document.getElementById('exportExcelBtn').addEventListener('click', exportMedicalRecordsToExcel);
+
+function exportMedicalRecordsToExcel() {
+    const table = document.querySelector('.medical-table');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    // Add headers (skip Actions column)
+    const headers = [];
+    table.querySelectorAll('th').forEach(th => {
+        if (th.textContent !== 'Actions') {
+            headers.push(th.textContent);
+        }
+    });
+    csv.push(headers.join(','));
+    
+    // Add data rows
+    rows.forEach(row => {
+        if (row.getAttribute('data-id')) { // Only data rows
+            const rowData = [];
+            row.querySelectorAll('td').forEach((td, index) => {
+                if (index < 9) { // Skip Actions column (index 9)
+                    // Use title attribute if available for full content
+                    const content = td.getAttribute('title') || td.textContent;
+                    let data = content.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                    data = data.replace(/"/g, '""');
+                    if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
+                        data = `"${data}"`;
+                    }
+                    rowData.push(data);
+                }
+            });
+            csv.push(rowData.join(','));
+        }
+    });
+    
+    // Download CSV file
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `medical_records_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showPopupMessage('success', 'Medical records data exported successfully!');
+}
 
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
