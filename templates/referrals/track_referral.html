@@ -938,16 +938,29 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchBtn = document.querySelector('.search-btn');
-            const closeBtn = document.querySelector('.action-buttons .btn-close');
+            const closeBtn = document.getElementById('close-btn');
             const referralInput = document.getElementById('referral-id');
             const referralDetails = document.getElementById('referral-details');
             const notFound = document.querySelector('.not-found');
             const loading = document.querySelector('.loading');
+            const retryBtn = document.querySelector('.btn-retry');
 
             // Initialize visibility states
             referralDetails.classList.remove('visible');
             notFound.classList.remove('visible');
             loading.classList.remove('visible');
+
+            // Close button click handler - FIXED
+            closeBtn.addEventListener('click', function() {
+                referralDetails.classList.remove('visible');
+                referralInput.value = '';
+            });
+
+            // Retry button click handler
+            retryBtn.addEventListener('click', function() {
+                notFound.classList.remove('visible');
+                referralInput.focus();
+            });
 
             // Search button click handler
             searchBtn.addEventListener('click', async function() {
@@ -962,7 +975,7 @@
                 loading.classList.add('visible');
                 referralDetails.classList.remove('visible');
                 notFound.classList.remove('visible');
-                closeBtn.style.display = "none";
+                closeBtn.style.display = "block";
 
                 try {
                     const response = await fetch(`/referrals/details/?referral_code=${encodeURIComponent(referralCode)}`);
@@ -1075,38 +1088,6 @@
                     notFound.querySelector('p').textContent = 'Error fetching referral details. Please try again.';
                 }
             });
-           
-                    // Dropdown / Submenu Logic (keep existing as it's separate from modal logic)
-        const dropdownTriggers = document.querySelectorAll('.submenu > a');
-
-        dropdownTriggers.forEach(trigger => {
-            trigger.addEventListener('click', function(e) {
-                e.preventDefault();
-                const parentLi = this.closest('li');
-
-                parentLi.classList.toggle('active');
-
-                document.querySelectorAll('.submenu').forEach(menu => {
-                    if (menu !== parentLi) {
-                        menu.classList.remove('active');
-                    }
-                });
-            });
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
-                document.querySelectorAll('.submenu').forEach(li => {
-                    li.classList.remove('active');
-                });
-            }
-        });
-
-        document.querySelectorAll('.sub-menu').forEach(menu => {
-            menu.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        });
 
             function getStatusClass(status) {
                 switch (status) {
@@ -1137,6 +1118,39 @@
                         return '';
                 }
             }
+        });
+
+        
+                    // Dropdown / Submenu Logic (keep existing as it's separate from modal logic)
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
+
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li');
+
+                parentLi.classList.toggle('active');
+
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) {
+                        menu.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
         });
     </script>
 </body>
