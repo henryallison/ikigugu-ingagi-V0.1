@@ -19,6 +19,26 @@
             background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
         }
 
+        /* Export Button Styles */
+.export-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
         .invalid-feedback {
             display: block;
             width: 100%;
@@ -536,69 +556,6 @@
         .btn-secondary:hover {
             background-color: #5a6268;
         }
-
-        /* Confirmation Modal Styles */
-        .confirmation-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            overflow: auto;
-        }
-
-        .confirmation-content {
-            background-color: white;
-            margin: 15% auto;
-            padding: 25px;
-            border-radius: 8px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            position: relative;
-            text-align: center;
-        }
-
-        .confirmation-content h2 {
-            margin-top: 0;
-            color: #dc3545;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .confirmation-content p {
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-        }
-
-        .confirmation-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .btn-confirm {
-            background-color: #dc3545;
-            color: white;
-            padding: 10px 20px;
-        }
-
-        .btn-confirm:hover {
-            background-color: #c82333;
-        }
-
-        .btn-cancel {
-            background-color: #6c757d;
-            color: white;
-            padding: 10px 20px;
-        }
-
-        .btn-cancel:hover {
-            background-color: #5a6268;
-        }
         
         /* Responsive Styles */
         @media screen and (max-width: 768px) {
@@ -634,36 +591,6 @@
             .pagination a {
                 padding: 6px 10px;
                 font-size: 0.85rem;
-            }
-
-            /* Adjust modal for mobile */
-            .modal-content {
-                margin: 10% auto;
-                padding: 15px;
-            }
-
-            .modal-row {
-                flex-direction: column;
-            }
-
-            .modal-label {
-                min-width: 100%;
-                margin-bottom: 5px;
-            }
-
-            /* Adjust confirmation modal for mobile */
-            .confirmation-content {
-                margin: 20% auto;
-                padding: 15px;
-            }
-
-            .confirmation-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .btn-confirm, .btn-cancel {
-                width: 100%;
             }
         }
         
@@ -787,6 +714,9 @@
                         <button class="clear-btn" id="clearBtn">
                             <i class="fas fa-times"></i> Clear
                         </button>
+                         <button class="export-btn" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
                     </div>
                     <a href="{% url 'manage_hospital_home' %}" class="back-btn">
                         <i class="fas fa-arrow-left"></i> Back
@@ -807,18 +737,6 @@
             <!-- Loading Overlay -->
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="loading-spinner"></div>
-            </div>
-
-            <!-- Delete Confirmation Modal -->
-            <div id="deleteConfirmationModal" class="confirmation-modal">
-                <div class="confirmation-content">
-                    <h2>Confirm Deletion</h2>
-                    <p id="deleteConfirmationMessage">Are you sure you want to delete this user?</p>
-                    <div class="confirmation-buttons">
-                        <button class="btn btn-confirm" id="confirmDeleteBtn">Delete</button>
-                        <button class="btn btn-cancel" id="cancelDeleteBtn">Cancel</button>
-                    </div>
-                </div>
             </div>
 
             <div class="table-container">
@@ -875,13 +793,13 @@
                             <td>{{ user.updated_at|date:"Y-m-d H:i:s" }}</td>
                             <td>
                                 <div class="actions">
-                                    <a href="#" class="btn-view" title="View Details" onclick="openViewModal(event, {{ user.id }})">
+                                    <a href="#" class="btn-view" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="#" class="btn-edit" title="Edit" onclick="openEditModal(event, {{ user.id }})">
+                                    <a href="#" class="btn-edit" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="#" class="btn-delete" title="Delete" onclick="confirmDelete({{ user.id }}, '{{ user.first_name }} {{ user.last_name }}', event)">
+                                    <a href="#" class="btn-delete" title="Delete">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </div>
@@ -1030,476 +948,476 @@
             </div>
         </div>
     </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dropdown functionality for sidebar items (toggle sub-menus)
+        const dropdownTriggers = document.querySelectorAll('.submenu > a');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Dropdown functionality for sidebar items (toggle sub-menus)
-            const dropdownTriggers = document.querySelectorAll('.submenu > a');
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default link behavior for dropdowns
 
-            dropdownTriggers.forEach(trigger => {
-                trigger.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent default link behavior for dropdowns
+                const parentLi = this.closest('li');
 
-                    const parentLi = this.closest('li');
+                // Toggle 'active' class on the clicked submenu
+                parentLi.classList.toggle('active');
 
-                    // Toggle 'active' class on the clicked submenu
-                    parentLi.classList.toggle('active');
-
-                    // Close other open submenus
-                    document.querySelectorAll('.submenu').forEach(menu => {
-                        if (menu !== parentLi) { // If it's not the clicked submenu
-                            menu.classList.remove('active'); // Close it
-                        }
-                    });
+                // Close other open submenus
+                document.querySelectorAll('.submenu').forEach(menu => {
+                    if (menu !== parentLi) { // If it's not the clicked submenu
+                        menu.classList.remove('active'); // Close it
+                    }
                 });
             });
-
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
-                    document.querySelectorAll('.submenu').forEach(li => {
-                        li.classList.remove('active');
-                    });
-                }
-            });
-
-            // Prevent dropdown from closing when clicking inside its sub-menu
-            document.querySelectorAll('.sub-menu').forEach(menu => {
-                menu.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-            });
-
-            // Initialize search functionality
-            initSearch();
-
-            // Initialize delete confirmation modal buttons
-            initDeleteConfirmation();
         });
 
-        // User data cache
-        const userDataCache = {};
-        let currentUserIdToDelete = null;
-
-        // Function to show loading overlay
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        }
-
-        // Function to hide loading overlay
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-
-        // Function to show beautiful popup messages
-        function showPopupMessage(type, message) {
-            const container = document.getElementById('popup-messages-container');
-            
-            // Clear any existing messages
-            container.innerHTML = '';
-            
-            // Create message element
-            const popup = document.createElement('div');
-            popup.className = alert-popup ${type};
-            
-            // Set icon based on message type
-            let icon;
-            switch(type) {
-                case 'success':
-                    icon = '<i class="fas fa-check-circle icon"></i>';
-                    break;
-                case 'error':
-                    icon = '<i class="fas fa-exclamation-circle icon"></i>';
-                    break;
-                case 'warning':
-                    icon = '<i class="fas fa-exclamation-triangle icon"></i>';
-                    break;
-                default:
-                    icon = '<i class="fas fa-info-circle icon"></i>';
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            // Check if the click is outside any .submenu or inside a .sub-menu itself
+            // (Clicking inside sub-menu should not close it, handled by stopPropagation below)
+            if (!e.target.closest('.submenu') && !e.target.closest('.sub-menu')) {
+                document.querySelectorAll('.submenu').forEach(li => {
+                    li.classList.remove('active');
+                });
             }
-            
-            popup.innerHTML = `
-                <div class="message-content">
-                    ${icon}
-                    <span>${message}</span>
-                </div>
-                <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
-            `;
-            
-            container.appendChild(popup);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (popup.parentNode) {
-                    popup.remove();
-                }
-            }, 5000);
-        }
+        });
 
-        // Initialize delete confirmation modal
-        function initDeleteConfirmation() {
-            const confirmBtn = document.getElementById('confirmDeleteBtn');
-            const cancelBtn = document.getElementById('cancelDeleteBtn');
-            const modal = document.getElementById('deleteConfirmationModal');
-
-            confirmBtn.addEventListener('click', function() {
-                if (currentUserIdToDelete) {
-                    deleteUser(currentUserIdToDelete);
-                }
-                modal.style.display = 'none';
-                currentUserIdToDelete = null;
+        // Prevent dropdown from closing when clicking inside its sub-menu
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation(); // Stop propagation to prevent the document click listener from closing it
             });
-
-            cancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
-                currentUserIdToDelete = null;
-            });
-
-            // Close modal when clicking outside
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                    currentUserIdToDelete = null;
-                }
-            });
-        }
+        });
 
         // Initialize search functionality
-        function initSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const searchBtn = document.getElementById('searchBtn');
-            const clearBtn = document.getElementById('clearBtn');
-            const usersTableBody = document.getElementById('usersTableBody');
-            const noUsersMessage = document.getElementById('noUsersMessage');
-            const pagination = document.querySelector('.pagination');
+        initSearch();
 
-            // Search button click handler
-            searchBtn.addEventListener('click', function() {
+        // Add event listeners to action buttons
+        document.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const userId = this.closest('tr').getAttribute('data-id');
+                openViewModal(e, userId);
+            });
+        });
+
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const userId = this.closest('tr').getAttribute('data-id');
+                openEditModal(e, userId);
+            });
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const userId = this.closest('tr').getAttribute('data-id');
+                const userName = this.closest('tr').cells[2].textContent + ' ' + this.closest('tr').cells[3].textContent;
+                confirmDelete(userId, userName, e);
+            });
+        });
+
+        // Add event listener for Excel export button
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+
+        // Add event listener for password toggle in edit modal
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Add event listeners for modal close buttons
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                modal.style.display = 'none';
+            });
+        });
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // User data cache
+    const userDataCache = {};
+
+    // Function to show loading overlay
+    function showLoading() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    // Function to hide loading overlay
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    // Function to show beautiful popup messages
+    function showPopupMessage(type, message) {
+        const container = document.getElementById('popup-messages-container');
+        
+        // Clear any existing messages
+        container.innerHTML = '';
+        
+        // Create message element
+        const popup = document.createElement('div');
+        popup.className = `alert-popup ${type}`;
+        
+        // Set icon based on message type
+        let icon;
+        switch(type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle icon"></i>';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-exclamation-circle icon"></i>';
+                break;
+            case 'warning':
+                icon = '<i class="fas fa-exclamation-triangle icon"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-info-circle icon"></i>';
+        }
+        
+        popup.innerHTML = `
+            <div class="message-content">
+                ${icon}
+                <span>${message}</span>
+            </div>
+            <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        container.appendChild(popup);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.remove();
+            }
+        }, 5000);
+    }
+
+    // Initialize search functionality
+    function initSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const noUsersMessage = document.getElementById('noUsersMessage');
+        const pagination = document.querySelector('.pagination');
+
+        // Search button click handler
+        searchBtn.addEventListener('click', function() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            if (searchTerm === '') {
+                showPopupMessage('warning', 'Please enter a search term');
+                return;
+            }
+            performSearch(searchTerm);
+        });
+
+        // Clear button click handler
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            resetSearch();
+        });
+
+        // Search input enter key handler
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
                 const searchTerm = searchInput.value.trim().toLowerCase();
                 if (searchTerm === '') {
                     showPopupMessage('warning', 'Please enter a search term');
                     return;
                 }
                 performSearch(searchTerm);
-            });
-
-            // Clear button click handler
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                resetSearch();
-            });
-
-            // Search input enter key handler
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const searchTerm = searchInput.value.trim().toLowerCase();
-                    if (searchTerm === '') {
-                        showPopupMessage('warning', 'Please enter a search term');
-                        return;
-                    }
-                    performSearch(searchTerm);
-                }
-            });
-
-            // Perform search function
-            function performSearch(searchTerm) {
-                let found = false;
-                const rows = usersTableBody.querySelectorAll('tr');
-                
-                rows.forEach(row => {
-                    const firstName = row.cells[2].textContent.toLowerCase();
-                    if (firstName.includes(searchTerm)) {
-                        row.style.display = '';
-                        found = true;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // Show/hide no users message
-                noUsersMessage.style.display = found ? 'none' : 'block';
-                
-                // Hide pagination when searching
-                if (pagination) {
-                    pagination.style.display = 'none';
-                }
             }
+        });
 
-            // Reset search function
-            function resetSearch() {
-                const rows = usersTableBody.querySelectorAll('tr');
-                rows.forEach(row => {
+        // Perform search function
+        function performSearch(searchTerm) {
+            let found = false;
+            const rows = usersTableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const firstName = row.cells[2].textContent.toLowerCase();
+                const lastName = row.cells[3].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                if (firstName.includes(searchTerm) || lastName.includes(searchTerm) || email.includes(searchTerm)) {
                     row.style.display = '';
-                });
-
-                // Hide no users message
-                noUsersMessage.style.display = 'none';
-                
-                // Show pagination
-                if (pagination) {
-                    pagination.style.display = 'flex';
-                }
-            }
-        }
-
-        // Function to toggle fields based on role in edit modal
-        function toggleEditModalRoleFields(role) {
-            const editHospitalSelectGroup = document.getElementById('editHospitalSelectGroup');
-            const editLicenseNumberGroup = document.getElementById('editLicenseNumberGroup');
-
-            if (role === 'hospital') {
-                editHospitalSelectGroup.style.display = 'block';
-                editLicenseNumberGroup.style.display = 'block';
-            } else {
-                editHospitalSelectGroup.style.display = 'none';
-                document.getElementById('editHospital').value = '';
-                document.getElementById('editHospitalDisplay').textContent = 'N/A';
-                editLicenseNumberGroup.style.display = 'none';
-                document.getElementById('licenseNumber').value = '';
-            }
-        }
-
-        // Open view modal
-        function openViewModal(event, userId) {
-            event.preventDefault();
-            const row = document.querySelector(tr[data-id="${userId}"]);
-            const cells = row.cells;
-            const details = {
-                id: cells[0].textContent,
-                email: cells[1].textContent,
-                firstName: cells[2].textContent,
-                lastName: cells[3].textContent,
-                phone: cells[4].textContent,
-                address: cells[5].textContent,
-                dateOfBirth: cells[6].textContent,
-                gender: cells[7].textContent,
-                role: cells[8].textContent,
-                assignedHospital: cells[9].textContent,
-                status: cells[10].textContent.trim(),
-                password: cells[11].textContent,
-                licenseNumber: cells[12].textContent,
-                createdAt: cells[13].textContent,
-                updatedAt: cells[14].textContent
-            };
-            document.getElementById('modalContent').innerHTML = formatModalContent(details);
-            document.getElementById('viewModal').style.display = 'block';
-        }
-
-        // Open edit modal
-        function openEditModal(event, userId) {
-            event.preventDefault();
-            const row = document.querySelector(tr[data-id="${userId}"]);
-            const cells = row.cells;
-
-            // Cache the original data, including new fields and hospital ID
-            userDataCache[userId] = {
-                firstName: cells[2].textContent,
-                lastName: cells[3].textContent,
-                email: cells[1].textContent,
-                phone: cells[4].textContent,
-                address: cells[5].textContent,
-                dateOfBirth: cells[6].textContent,
-                gender: cells[7].textContent,
-                role: cells[8].textContent,
-                assignedHospital: cells[9].textContent,
-                assignedHospitalId: row.dataset.hospitalId || '',
-                status: cells[10].textContent.trim(),
-                licenseNumber: cells[12].textContent
-            };
-
-            // Populate the form
-            document.getElementById('userId').value = userId;
-            document.getElementById('firstName').value = userDataCache[userId].firstName;
-            document.getElementById('lastName').value = userDataCache[userId].lastName;
-            document.getElementById('email').value = userDataCache[userId].email;
-            document.getElementById('phone').value = userDataCache[userId].phone;
-            document.getElementById('address').value = userDataCache[userId].address;
-            document.getElementById('dateOfBirth').value = userDataCache[userId].dateOfBirth;
-            document.getElementById('currentDateOfBirth').textContent = userDataCache[userId].dateOfBirth;
-
-            // Set select values
-            const genderSelect = document.getElementById('gender');
-            const statusSelect = document.getElementById('status');
-
-            // Set gender
-            Array.from(genderSelect.options).forEach(option => {
-                if (option.value === userDataCache[userId].gender.toLowerCase()) {
-                    option.selected = true;
+                    found = true;
+                } else {
+                    row.style.display = 'none';
                 }
             });
 
-            // Set role display and hidden input
-            const roleText = userDataCache[userId].role;
-            document.getElementById('editRoleDisplay').textContent = roleText.charAt(0).toUpperCase() + roleText.slice(1);
-            document.getElementById('editRole').value = roleText.toLowerCase();
+            // Show/hide no users message
+            noUsersMessage.style.display = found ? 'none' : 'block';
+            
+            // Hide pagination when searching
+            if (pagination) {
+                pagination.style.display = 'none';
+            }
+        }
 
-            // Set assigned hospital display and hidden input
-            document.getElementById('editHospitalDisplay').textContent = userDataCache[userId].assignedHospital;
-            document.getElementById('editHospital').value = userDataCache[userId].assignedHospitalId;
-
-            // Trigger role-based field toggling
-            toggleEditModalRoleFields(userDataCache[userId].role.toLowerCase());
-
-            // Set status
-            Array.from(statusSelect.options).forEach(option => {
-                if (option.value === (userDataCache[userId].status === 'Active' ? '1' : '0')) {
-                    option.selected = true;
-                }
+        // Reset search function
+        function resetSearch() {
+            const rows = usersTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                row.style.display = '';
             });
 
-            document.getElementById('licenseNumber').value = userDataCache[userId].licenseNumber;
-            document.getElementById('password').value = "";
-
-            // Initialize password toggle
-            const togglePasswordBtn = document.getElementById('togglePassword');
-            if (togglePasswordBtn) {
-                togglePasswordBtn.addEventListener('click', function() {
-                    const passwordInput = document.getElementById('password');
-                    const icon = this.querySelector('i');
-                    if (passwordInput.type === 'password') {
-                        passwordInput.type = 'text';
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                    } else {
-                        passwordInput.type = 'password';
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
-                    }
-                });
+            // Hide no users message
+            noUsersMessage.style.display = 'none';
+            
+            // Show pagination
+            if (pagination) {
+                pagination.style.display = 'flex';
             }
+        }
+    }
 
-            document.getElementById('editModal').style.display = 'block';
+    // Function to toggle fields based on role in edit modal
+    function toggleEditModalRoleFields(role) {
+        const editHospitalSelectGroup = document.getElementById('editHospitalSelectGroup');
+        const editLicenseNumberGroup = document.getElementById('editLicenseNumberGroup');
+
+        if (role === 'hospital') {
+            editHospitalSelectGroup.style.display = 'block';
+            editLicenseNumberGroup.style.display = 'block';
+        } else {
+            editHospitalSelectGroup.style.display = 'none';
+            document.getElementById('editHospital').value = '';
+            document.getElementById('editHospitalDisplay').textContent = 'N/A';
+            editLicenseNumberGroup.style.display = 'none';
+            document.getElementById('licenseNumber').value = '';
+        }
+    }
+
+    // Open view modal
+    function openViewModal(event, userId) {
+        event.preventDefault();
+        const row = document.querySelector(`tr[data-id="${userId}"]`);
+        const cells = row.cells;
+        const details = {
+            id: cells[0].textContent,
+            email: cells[1].textContent,
+            firstName: cells[2].textContent,
+            lastName: cells[3].textContent,
+            phone: cells[4].textContent,
+            address: cells[5].textContent,
+            dateOfBirth: cells[6].textContent,
+            gender: cells[7].textContent,
+            role: cells[8].textContent,
+            assignedHospital: cells[9].textContent,
+            status: cells[10].textContent.trim(),
+            password: cells[11].textContent,
+            licenseNumber: cells[12].textContent,
+            createdAt: cells[13].textContent,
+            updatedAt: cells[14].textContent
+        };
+        document.getElementById('modalContent').innerHTML = formatModalContent(details);
+        document.getElementById('viewModal').style.display = 'block';
+    }
+
+    // Open edit modal
+    function openEditModal(event, userId) {
+        event.preventDefault();
+        const row = document.querySelector(`tr[data-id="${userId}"]`);
+        const cells = row.cells;
+
+        // Cache the original data, including new fields and hospital ID
+        userDataCache[userId] = {
+            firstName: cells[2].textContent,
+            lastName: cells[3].textContent,
+            email: cells[1].textContent,
+            phone: cells[4].textContent,
+            address: cells[5].textContent,
+            dateOfBirth: cells[6].textContent,
+            gender: cells[7].textContent,
+            role: cells[8].textContent,
+            assignedHospital: cells[9].textContent,
+            assignedHospitalId: row.dataset.hospitalId || '',
+            status: cells[10].textContent.trim(),
+            licenseNumber: cells[12].textContent
+        };
+
+        // Populate the form
+        document.getElementById('userId').value = userId;
+        document.getElementById('firstName').value = userDataCache[userId].firstName;
+        document.getElementById('lastName').value = userDataCache[userId].lastName;
+        document.getElementById('email').value = userDataCache[userId].email;
+        document.getElementById('phone').value = userDataCache[userId].phone;
+        document.getElementById('address').value = userDataCache[userId].address;
+        document.getElementById('dateOfBirth').value = userDataCache[userId].dateOfBirth;
+        document.getElementById('currentDateOfBirth').textContent = userDataCache[userId].dateOfBirth;
+
+        // Set select values
+        const genderSelect = document.getElementById('gender');
+        const statusSelect = document.getElementById('status');
+
+        // Set gender
+        Array.from(genderSelect.options).forEach(option => {
+            if (option.value === userDataCache[userId].gender.toLowerCase()) {
+                option.selected = true;
+            }
+        });
+
+        // Set role display and hidden input
+        const roleText = userDataCache[userId].role;
+        document.getElementById('editRoleDisplay').textContent = roleText.charAt(0).toUpperCase() + roleText.slice(1);
+        document.getElementById('editRole').value = roleText.toLowerCase();
+
+        // Set assigned hospital display and hidden input
+        document.getElementById('editHospitalDisplay').textContent = userDataCache[userId].assignedHospital;
+        document.getElementById('editHospital').value = userDataCache[userId].assignedHospitalId;
+
+        // Trigger role-based field toggling
+        toggleEditModalRoleFields(userDataCache[userId].role.toLowerCase());
+
+        // Set status
+        Array.from(statusSelect.options).forEach(option => {
+            if (option.value === (userDataCache[userId].status === 'Active' ? '1' : '0')) {
+                option.selected = true;
+            }
+        });
+
+        document.getElementById('licenseNumber').value = userDataCache[userId].licenseNumber;
+        document.getElementById('password').value = "";
+
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    // Save user changes
+    function saveUserChanges() {
+        showLoading();
+        
+        const form = document.getElementById('editForm');
+        const formData = new FormData(form);
+        const userId = document.getElementById('userId').value;
+        const role = document.getElementById('editRole').value;
+        const hospitalId = document.getElementById('editHospital').value;
+
+        // Client-side phone validation before sending to backend
+        const phoneInput = document.getElementById('phone').value;
+        if (!/^\+2507[0-9]{8}$/.test(phoneInput)) {
+            hideLoading();
+            showPopupMessage('error', "Please enter a valid Rwandan phone number (e.g., +250781234567).");
+            return;
         }
 
-        // Save user changes
-        function saveUserChanges() {
-            showLoading();
-            
-            const form = document.getElementById('editForm');
-            const formData = new FormData(form);
-            const userId = document.getElementById('userId').value;
-            const role = document.getElementById('editRole').value;
-            const hospitalId = document.getElementById('editHospital').value;
-
-            // Client-side phone validation before sending to backend
-            const phoneInput = document.getElementById('phone').value;
-            if (!/^\+2507[0-9]{8}$/.test(phoneInput)) {
-                hideLoading();
-                showPopupMessage('error', "Please enter a valid Rwandan phone number (e.g., +250781234567).");
-                return;
-            }
-
-            // This check is still needed for hospital admin even if field is display-only
-            if (role === 'hospital' && !hospitalId) {
-                hideLoading();
-                showPopupMessage('error', "Please select an approved hospital for Hospital Administrator.");
-                return;
-            }
-            
-            fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => { throw err; });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    hideLoading();
-                    if (data && data.status === 'success') {
-                        showPopupMessage('success', data.message || 'User updated successfully');
-                        
-                        // Check if data.user exists before trying to access its properties
-                        if (data.user && data.user.id) {
-                            updateTableRow(data.user.id, data.user);
-                        } else {
-                            // If user data isn't in response, refresh the page
-                            window.location.reload();
-                        }
-                        
-                        closeModal('editModal');
-                    } else {
-                        showPopupMessage('error', data.message || 'Failed to update user');
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    console.error('Error in saveUserChanges:', error);
-                    showPopupMessage('error', error.message || 'Error updating user. Please try again.');
-                });
+        // This check is still needed for hospital admin even if field is display-only
+        if (role === 'hospital' && !hospitalId) {
+            hideLoading();
+            showPopupMessage('error', "Please select an approved hospital for Hospital Administrator.");
+            return;
         }
-
-        // Update table row with new data
-        function updateTableRow(userId, data) {
-            const row = document.querySelector(tr[data-id="${userId}"]);
-            if (row) {
-                // Update the data-hospital-id attribute if the hospital changes
-                row.dataset.hospitalId = data.hospital_id || '';
-
-                const cells = row.cells;
-                cells[1].textContent = data.email;
-                cells[2].textContent = data.first_name;
-                cells[3].textContent = data.last_name;
-                cells[4].textContent = data.phone;
-                cells[5].textContent = data.address;
-                cells[6].textContent = data.date_of_birth;
-                cells[7].textContent = data.gender;
-                cells[8].textContent = data.role;
-                cells[9].textContent = data.hospital_name || 'N/A';
-                
-                // Update status badge
-                const statusCell = cells[10];
-                const badge = statusCell.querySelector('.badge');
-                if (badge) {
-                    badge.className = badge ${data.is_active ? 'bg-success' : 'bg-danger'};
-                    badge.textContent = data.is_active ? 'Active' : 'Inactive';
+        
+        fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-                cells[11].textContent = "••••••••";
-                cells[12].textContent = data.license_number || '';
-                cells[13].textContent = data.created_at;
-                cells[14].textContent = data.updated_at;
-
-                // Update cached data for this user
-                if (userDataCache[userId]) {
-                    userDataCache[userId].email = data.email;
-                    userDataCache[userId].first_name = data.first_name;
-                    userDataCache[userId].last_name = data.last_name;
-                    userDataCache[userId].phone = data.phone;
-                    userDataCache[userId].address = data.address;
-                    userDataCache[userId].date_of_birth = data.date_of_birth;
-                    userDataCache[userId].gender = data.gender;
-                    userDataCache[userId].role = data.role;
-                    userDataCache[userId].assignedHospital = data.hospital_name || 'N/A';
-                    userDataCache[userId].assignedHospitalId = data.hospital_id || '';
-                    userDataCache[userId].status = data.is_active ? 'Active' : 'Inactive';
-                    userDataCache[userId].licenseNumber = data.license_number || '';
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
                 }
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                if (data && data.status === 'success') {
+                    showPopupMessage('success', data.message || 'User updated successfully');
+                    
+                    // Check if data.user exists before trying to access its properties
+                    if (data.user && data.user.id) {
+                        updateTableRow(data.user.id, data.user);
+                    } else {
+                        // If user data isn't in response, refresh the page
+                        window.location.reload();
+                    }
+                    
+                    closeModal('editModal');
+                } else {
+                    showPopupMessage('error', data.message || 'Failed to update user');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error in saveUserChanges:', error);
+                showPopupMessage('error', error.message || 'Error updating user. Please try again.');
+            });
+    }
+
+    // Update table row with new data
+    function updateTableRow(userId, data) {
+        const row = document.querySelector(`tr[data-id="${userId}"]`);
+        if (row) {
+            // Update the data-hospital-id attribute if the hospital changes
+            row.dataset.hospitalId = data.hospital_id || '';
+
+            const cells = row.cells;
+            cells[1].textContent = data.email;
+            cells[2].textContent = data.first_name;
+            cells[3].textContent = data.last_name;
+            cells[4].textContent = data.phone;
+            cells[5].textContent = data.address;
+            cells[6].textContent = data.date_of_birth;
+            cells[7].textContent = data.gender;
+            cells[8].textContent = data.role;
+            cells[9].textContent = data.hospital_name || 'N/A';
+            
+            // Update status badge
+            const statusCell = cells[10];
+            const badge = statusCell.querySelector('.badge');
+            if (badge) {
+                badge.className = `badge ${data.is_active ? 'bg-success' : 'bg-danger'}`;
+                badge.textContent = data.is_active ? 'Active' : 'Inactive';
+            }
+            cells[11].textContent = "••••••••";
+            cells[12].textContent = data.license_number || '';
+            cells[13].textContent = data.created_at;
+            cells[14].textContent = data.updated_at;
+
+            // Update cached data for this user
+            if (userDataCache[userId]) {
+                userDataCache[userId].email = data.email;
+                userDataCache[userId].first_name = data.first_name;
+                userDataCache[userId].last_name = data.last_name;
+                userDataCache[userId].phone = data.phone;
+                userDataCache[userId].address = data.address;
+                userDataCache[userId].date_of_birth = data.date_of_birth;
+                userDataCache[userId].gender = data.gender;
+                userDataCache[userId].role = data.role;
+                userDataCache[userId].assignedHospital = data.hospital_name || 'N/A';
+                userDataCache[userId].assignedHospitalId = data.hospital_id || '';
+                userDataCache[userId].status = data.is_active ? 'Active' : 'Inactive';
+                userDataCache[userId].licenseNumber = data.license_number || '';
             }
         }
+    }
 
-        // Confirm delete with loading indicator
-        function confirmDelete(userId, userName, event) {
-            event.preventDefault();
-            currentUserIdToDelete = userId;
-            
-            // Set the confirmation message
-            document.getElementById('deleteConfirmationMessage').textContent = 
-                Are you sure you want to delete user ${userName}? This action cannot be undone.;
-            
-            // Show the confirmation modal
-            document.getElementById('deleteConfirmationModal').style.display = 'block';
-        }
-
-        // Delete user function
-        function deleteUser(userId) {
+    // Confirm delete with loading indicator
+    function confirmDelete(userId, userName, event) {
+        event.preventDefault();
+        if (confirm(`Are you sure you want to delete user ${userName}? This action cannot be undone.`)) {
             showLoading();
-            fetch(/manage_hospital/delete_user/${userId}/, {
+            fetch(`/manage_hospital/delete_user/${userId}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
@@ -1517,7 +1435,7 @@
                     hideLoading();
                     if (data && data.status === 'success') {
                         // Remove row from table
-                        const row = document.querySelector(tr[data-id="${userId}"]);
+                        const row = document.querySelector(`tr[data-id="${userId}"]`);
                         if (row) {
                             row.remove();
                         }
@@ -1532,98 +1450,147 @@
                     showPopupMessage('error', 'Error deleting user: ' + (error.message || 'Please try again'));
                 });
         }
+    }
 
-        // Close modal
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            // Reset password field in edit modal when closed
-            if (modalId === 'editModal') {
-                document.getElementById('password').value = "";
-                const togglePasswordBtn = document.getElementById('togglePassword');
-                if (togglePasswordBtn) {
-                    togglePasswordBtn.querySelector('i').classList.remove('fa-eye-slash');
-                    togglePasswordBtn.querySelector('i').classList.add('fa-eye');
-                    document.getElementById('password').setAttribute('type', 'password');
-                }
+    // Close modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        // Reset password field in edit modal when closed
+        if (modalId === 'editModal') {
+            document.getElementById('password').value = "";
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            if (togglePasswordBtn) {
+                togglePasswordBtn.querySelector('i').classList.remove('fa-eye-slash');
+                togglePasswordBtn.querySelector('i').classList.add('fa-eye');
+                document.getElementById('password').setAttribute('type', 'password');
             }
         }
+    }
 
-        // Format modal content for view
-        function formatModalContent(details) {
-            return `
-                <div class="modal-section">
-                    <h3>Personal Information</h3>
-                    <p><strong>ID:</strong> ${details.id}</p>
-                    <p><strong>Email:</strong> ${details.email}</p>
-                    <p><strong>First Name:</strong> ${details.firstName}</p>
-                    <p><strong>Last Name:</strong> ${details.lastName}</p>
-                    <p><strong>Phone:</strong> ${details.phone}</p>
-                    <p><strong>Address:</strong> ${details.address}</p>
-                    <p><strong>Date of Birth:</strong> ${details.dateOfBirth}</p>
-                    <p><strong>Gender:</strong> ${details.gender}</p>
-                </div>
-                <div class="modal-section">
-                    <h3>Account Information</h3>
-                    <p><strong>Role:</strong> ${details.role}</p>
-                    <p><strong>Assigned Hospital:</strong> ${details.assignedHospital}</p>
-                    <p><strong>Status:</strong> ${details.status}</p>
-                    <p><strong>Password:</strong> ••••••••</p>
-                </div>
-                <div class="modal-section">
-                    <h3>Licence Information</h3>
-                    <p><strong>License Number:</strong> ${details.licenseNumber}</p>
-                </div>
-                <div class="modal-section">
-                    <h3>System Information</h3>
-                    <p><strong>Created At:</strong> ${details.createdAt}</p>
-                    <p><strong>Updated At:</strong> ${details.updatedAt}</p>
-                </div>
-            `;
-        }
+    // Format modal content for view
+    function formatModalContent(details) {
+        return `
+            <div class="modal-section">
+                <h3>Personal Information</h3>
+                <p><strong>ID:</strong> ${details.id}</p>
+                <p><strong>Email:</strong> ${details.email}</p>
+                <p><strong>First Name:</strong> ${details.firstName}</p>
+                <p><strong>Last Name:</strong> ${details.lastName}</p>
+                <p><strong>Phone:</strong> ${details.phone}</p>
+                <p><strong>Address:</strong> ${details.address}</p>
+                <p><strong>Date of Birth:</strong> ${details.dateOfBirth}</p>
+                <p><strong>Gender:</strong> ${details.gender}</p>
+            </div>
+            <div class="modal-section">
+                <h3>Account Information</h3>
+                <p><strong>Role:</strong> ${details.role}</p>
+                <p><strong>Assigned Hospital:</strong> ${details.assignedHospital}</p>
+                <p><strong>Status:</strong> ${details.status}</p>
+                <p><strong>Password:</strong> ••••••••</p>
+            </div>
+            <div class="modal-section">
+                <h3>Licence Information</h3>
+                <p><strong>License Number:</strong> ${details.licenseNumber}</p>
+            </div>
+            <div class="modal-section">
+                <h3>System Information</h3>
+                <p><strong>Created At:</strong> ${details.createdAt}</p>
+                <p><strong>Updated At:</strong> ${details.updatedAt}</p>
+            </div>
+        `;
+    }
 
-        // Add password toggle functionality for table rows
-        function togglePassword(button) {
-            const passwordCell = button.closest('td').querySelector('.password-cell');
-            const userId = button.closest('tr').dataset.id;
-            if (!passwordCell) return;
-            // If we don't have the password in cache, fetch it
-            if (!userDataCache[userId] || !userDataCache[userId].password) {
-                fetch(/manage_hospital/get_user_password/${userId}/)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            userDataCache[userId] = userDataCache[userId] || {};
-                            userDataCache[userId].password = data.password;
-                            updatePasswordDisplay(button);
-                        } else {
-                            console.error('Failed to fetch password:', data.message);
-                            showPopupMessage('error', 'Failed to retrieve password.');
+    // Excel Export Functionality
+    function exportToExcel() {
+        const table = document.querySelector('.hospital-table');
+        const rows = table.querySelectorAll('tr');
+        let csv = [];
+        
+        // Add headers (skip the Actions column)
+        const headers = [];
+        table.querySelectorAll('th').forEach((th, index) => {
+            if (index < 15) { // Skip the last column (Actions)
+                headers.push(th.textContent);
+            }
+        });
+        csv.push(headers.join(','));
+        
+        // Add data rows
+        rows.forEach(row => {
+            if (row.getAttribute('data-id')) { // Only data rows
+                const rowData = [];
+                row.querySelectorAll('td').forEach((td, index) => {
+                    if (index < 15) { // Skip the Actions column
+                        let data = td.textContent.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                        data = data.replace(/"/g, '""');
+                        if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
+                            data = `"${data}"`;
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching password:', error);
-                        showPopupMessage('error', 'Error retrieving password.');
-                    });
-            } else {
-                updatePasswordDisplay(button);
+                        rowData.push(data);
+                    }
+                });
+                csv.push(rowData.join(','));
             }
-        }
+        });
+        
+        // Download CSV file
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `users_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showPopupMessage('success', 'Users data exported successfully!');
+    }
 
-        function updatePasswordDisplay(button) {
-            const passwordCell = button.closest('td').querySelector('.password-cell');
-            const userId = button.closest('tr').dataset.id;
-            if (!passwordCell) return;
-            const isShowing = passwordCell.textContent !== '••••••••';
-            if (isShowing) {
-                passwordCell.textContent = '••••••••';
-                button.querySelector('i').classList.remove('fa-eye-slash');
-                button.querySelector('i').classList.add('fa-eye');
-            } else {
-                passwordCell.textContent = userDataCache[userId]?.password || '••••••••';
-                button.querySelector('i').classList.remove('fa-eye');
-                button.querySelector('i').classList.add('fa-eye-slash');
-            }
+    // Add password toggle functionality for table rows
+    function togglePassword(button) {
+        const passwordCell = button.closest('td').querySelector('.password-cell');
+        const userId = button.closest('tr').dataset.id;
+        if (!passwordCell) return;
+        // If we don't have the password in cache, fetch it
+        if (!userDataCache[userId] || !userDataCache[userId].password) {
+            fetch(`/manage_hospital/get_user_password/${userId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        userDataCache[userId] = userDataCache[userId] || {};
+                        userDataCache[userId].password = data.password;
+                        updatePasswordDisplay(button);
+                    } else {
+                        console.error('Failed to fetch password:', data.message);
+                        showPopupMessage('error', 'Failed to retrieve password.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching password:', error);
+                    showPopupMessage('error', 'Error retrieving password.');
+                });
+        } else {
+            updatePasswordDisplay(button);
         }
-    </script>
+    }
+
+    function updatePasswordDisplay(button) {
+        const passwordCell = button.closest('td').querySelector('.password-cell');
+        const userId = button.closest('tr').dataset.id;
+        if (!passwordCell) return;
+        const isShowing = passwordCell.textContent !== '••••••••';
+        if (isShowing) {
+            passwordCell.textContent = '••••••••';
+            button.querySelector('i').classList.remove('fa-eye-slash');
+            button.querySelector('i').classList.add('fa-eye');
+        } else {
+            passwordCell.textContent = userDataCache[userId]?.password || '••••••••';
+            button.querySelector('i').classList.remove('fa-eye');
+            button.querySelector('i').classList.add('fa-eye-slash');
+        }
+    }
+</script>
 </body>
 </html>
