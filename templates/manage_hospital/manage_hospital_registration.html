@@ -540,6 +540,195 @@
                 font-size: 0.85rem;
             }
         }
+
+        /* Export Button Styles */
+.export-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
+
+/* Popup Message Styles */
+.alert-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 90%;
+    width: auto;
+    min-width: 300px;
+    z-index: 9999;
+    animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards;
+    opacity: 0;
+}
+
+.alert-popup.success {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+}
+
+.alert-popup.error {
+    background: linear-gradient(135deg, #F44336, #C62828);
+    color: white;
+}
+
+.alert-popup.warning {
+    background: linear-gradient(135deg, #FF9800, #EF6C00);
+    color: white;
+}
+
+.alert-popup.info {
+    background: linear-gradient(135deg, #2196F3, #1565C0);
+    color: white;
+}
+
+.alert-popup .message-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-popup .close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 15px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.alert-popup .close-btn:hover {
+    opacity: 1;
+}
+
+.alert-popup .icon {
+    font-size: 1.5rem;
+}
+
+@keyframes slideIn {
+    from {
+        top: -100px;
+        opacity: 0;
+    }
+    to {
+        top: 20px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* SMS Confirmation Modal */
+.sms-confirm-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.sms-confirm-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 25px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: modalopen 0.4s;
+}
+
+.sms-confirm-content h3 {
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+.sms-confirm-content p {
+    margin-bottom: 20px;
+}
+
+.sms-confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.sms-confirm-btn {
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+}
+
+.sms-confirm-btn.confirm {
+    background-color: #28a745;
+    color: white;
+}
+
+.sms-confirm-btn.confirm:hover {
+    background-color: #218838;
+}
+
+.sms-confirm-btn.cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.sms-confirm-btn.cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .export-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .sms-confirm-buttons {
+        flex-direction: column;
+    }
+    
+    .sms-confirm-btn {
+        width: 100%;
+    }
+}
     </style>
 </head>
 <body>
@@ -613,25 +802,28 @@
         <div class="main-content">
             <div class="page-header">
                 <h1>Hospital Registration Management</h1>
-                <div class="header-actions">
-                    <div class="search-container">
-                        <div class="search-input-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Search by hospital name...">
-                        </div>
-                        <button class="search-btn" id="searchBtn">
-                            <i class="fas fa-search"></i> Search
-                        </button>
-                        <button class="clear-search-btn" id="clearSearchBtn">
-                            <i class="fas fa-times"></i> Clear
-                        </button>
-                    </div>
-                    <div class="action-buttons">
-                        <a href="{% url 'manage_hospital_home' %}" class="back-btn">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </a>
-                    </div>
-                </div>
+              <div class="header-actions">
+    <div class="search-container">
+        <div class="search-input-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by hospital name...">
+        </div>
+        <button class="search-btn" id="searchBtn">
+            <i class="fas fa-search"></i> Search
+        </button>
+        <button class="clear-search-btn" id="clearSearchBtn">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+    <button class="export-btn" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
+    <div class="action-buttons">
+        <a href="{% url 'manage_hospital_home' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
             </div>
             
             <!-- No results message box -->
@@ -1361,6 +1553,78 @@ function saveFacilityChanges() {
     }
 }
 
+// Excel Export Functionality
+document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+
+function exportToExcel() {
+    const table = document.querySelector('.hospital-table');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    // Add headers (skip the Actions column)
+    const headers = [];
+    table.querySelectorAll('th').forEach((th, index) => {
+        if (index < 18) { // Skip the last column (Actions)
+            headers.push(th.textContent);
+        }
+    });
+    csv.push(headers.join(','));
+    
+    // Add data rows
+    rows.forEach(row => {
+        if (row.getAttribute('data-id')) { // Only data rows
+            const rowData = [];
+            row.querySelectorAll('td').forEach((td, index) => {
+                if (index < 18) { // Skip the Actions column
+                    let data = td.textContent.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                    data = data.replace(/"/g, '""');
+                    if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
+                        data = `"${data}"`;
+                    }
+                    rowData.push(data);
+                }
+            });
+            csv.push(rowData.join(','));
+        }
+    });
+    
+    // Download CSV file
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `hospitals_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+
+}
+
+// Beautiful Popup Message
+function showPopupMessage(type, message) {
+    const container = document.getElementById('popup-messages-container') || document.body;
+    
+    const popup = document.createElement('div');
+    popup.className = `alert-popup ${type}`;
+    popup.innerHTML = `
+        <div class="message-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} icon"></i>
+            <span>${message}</span>
+        </div>
+        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    
+    container.appendChild(popup);
+    
+    setTimeout(() => {
+        if (popup.parentNode) {
+            popup.remove();
+        }
+    }, 5000);
+}
 
 
     
