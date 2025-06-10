@@ -15,6 +15,26 @@
         background: #fff;
         overflow-x: auto;
     }
+
+     .export-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
     /* No results message box */
 .no-results-message {
     display: none;
@@ -841,6 +861,9 @@
             <button type="button" class="clear-search-btn" onclick="clearSearch()" style="display: none;">
                 <i class="fas fa-times"></i> Clear
             </button>
+            <button class="export-btn" id="exportExcelBtn">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
         </div>
         <a href="{% url 'patients:add_patient' %}" class="add-btn">
             <i class="fas fa-plus"></i> Add Patient
@@ -1347,6 +1370,66 @@
 </div>
 
 <script>
+
+    // Excel Export Functionality for Patients
+document.getElementById('exportExcelBtn').addEventListener('click', exportPatientsToExcel);
+
+function exportPatientsToExcel() {
+    const table = document.querySelector('.patient-table');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    // Add headers (skip Actions column)
+    const headers = [];
+    table.querySelectorAll('th').forEach((th, index) => {
+        // Skip the last column (Actions) which is index 16 (0-based)
+        if (index < 16) {
+            headers.push(th.textContent);
+        }
+    });
+    csv.push(headers.join(','));
+    
+    // Add data rows
+    rows.forEach(row => {
+        if (row.getAttribute('data-id')) { // Only data rows
+            const rowData = [];
+            row.querySelectorAll('td').forEach((td, index) => {
+                // Skip the last column (Actions) which is index 16 (0-based)
+                if (index < 16) {
+                    let data = td.textContent;
+                    
+                    // Handle image column differently
+                    if (index === 15) { // Image column is index 15 (0-based)
+                        const img = td.querySelector('img');
+                        data = img ? img.src : 'No Image';
+                    }
+                    
+                    // Clean up data for CSV
+                    data = data.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                    data = data.replace(/"/g, '""');
+                    if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
+                        data = `"${data}"`;
+                    }
+                    rowData.push(data);
+                }
+            });
+            csv.push(rowData.join(','));
+        }
+    });
+    
+    // Download CSV file
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `patients_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+}
     // Search functionality
     function searchPatients() {
         const searchInput = document.getElementById('patientSearch');
@@ -2006,8 +2089,6 @@
                 }
             }
         });
-
-
         // 2. Validate Rwandan phone number format for editPhone and editEmergency
         const editPhone = document.getElementById('editPhone');
         const editEmergency = document.getElementById('editEmergency');
